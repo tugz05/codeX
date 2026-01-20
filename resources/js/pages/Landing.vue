@@ -380,9 +380,14 @@ function isVisible(id: string): boolean {
             <Code class="h-5 w-5" />
             <span class="font-semibold">codeX</span>
           </div>
-          <p class="text-sm text-muted-foreground">
-            © {{ new Date().getFullYear() }} codeX. All rights reserved.
-          </p>
+          <div class="flex flex-col items-end gap-1 text-right">
+            <p class="text-sm text-muted-foreground">
+              Developed by: <span class="font-semibold">Virgilio F. Tuga Jr.</span>
+            </p>
+            <p class="text-sm text-muted-foreground">
+              © {{ new Date().getFullYear() }} codeX. All rights reserved.
+            </p>
+          </div>
         </div>
       </div>
     </footer>
