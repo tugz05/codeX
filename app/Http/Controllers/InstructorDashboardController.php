@@ -16,12 +16,14 @@ class InstructorDashboardController extends Controller
         $instructorId = Auth::id();
 
         // Get active classes count
-        $activeClasses = Classlist::where('instructor_id', $instructorId)->count();
+        $activeClasses = Classlist::where('user_id', $instructorId)
+            ->where('is_archived', false)
+            ->count();
 
         // Get pending submissions count
         $pendingSubmissions = ActivitySubmission::whereHas('activity', function ($query) use ($instructorId) {
             $query->whereHas('classlist', function ($q) use ($instructorId) {
-                $q->where('instructor_id', $instructorId);
+                $q->where('user_id', $instructorId);
             });
         })
         ->where('status', 'submitted')
@@ -30,7 +32,7 @@ class InstructorDashboardController extends Controller
         // Calculate average score
         $averageScore = ActivitySubmission::whereHas('activity', function ($query) use ($instructorId) {
             $query->whereHas('classlist', function ($q) use ($instructorId) {
-                $q->where('instructor_id', $instructorId);
+                $q->where('user_id', $instructorId);
             });
         })
         ->where('status', 'graded')
@@ -39,7 +41,7 @@ class InstructorDashboardController extends Controller
 
         // Get total activities
         $totalActivities = Activity::whereHas('classlist', function ($query) use ($instructorId) {
-            $query->where('instructor_id', $instructorId);
+            $query->where('user_id', $instructorId);
         })->count();
 
         return Inertia::render('Instructor/Dashboard/Index', [
