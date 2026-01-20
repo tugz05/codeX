@@ -25,8 +25,7 @@ class LandingPageController extends Controller
     private function getLeaderboard()
     {
         // Get all classlists with their top performers
-        $classlists = Classlist::with('section')
-            ->whereHas('students')
+        $classlists = Classlist::whereHas('students')
             ->get();
 
         $leaderboard = [];
