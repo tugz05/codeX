@@ -7,6 +7,9 @@
 /storage/*.key
 /storage/pail
 /vendor
+/storage/java/
+/storage/python/
+/storage/mingw64/
 .env
 .env.backup
 .env.production
