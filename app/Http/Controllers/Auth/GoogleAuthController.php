@@ -20,7 +20,9 @@ class GoogleAuthController extends Controller
             $request->session()->put('invite_code', $request->query('code'));
         }
         
-        return Socialite::driver('google')->redirect();
+        return Socialite::driver('google')
+            ->scopes(['profile', 'email'])
+            ->redirect();
     }
 
     /**
@@ -38,6 +40,13 @@ class GoogleAuthController extends Controller
                     ->withErrors(['email' => 'Only @nemsu.edu.ph email addresses are allowed for Google sign-in.']);
             }
 
+            // Get avatar URL from Google user
+            $avatarUrl = $googleUser->getAvatar();
+            // If getAvatar() returns null, try to get from raw data
+            if (!$avatarUrl && isset($googleUser->user['picture'])) {
+                $avatarUrl = $googleUser->user['picture'];
+            }
+
             // Check if user exists by email
             $user = User::where('email', $email)->first();
 
@@ -46,7 +55,7 @@ class GoogleAuthController extends Controller
                 $user->update([
                     'google_id' => $googleUser->getId(),
                     'name' => $googleUser->getName(), // Update name from Google
-                    'avatar' => $googleUser->getAvatar(), // Update avatar from Google
+                    'avatar' => $avatarUrl, // Update avatar from Google
                 ]);
                 
                 Auth::login($user);
@@ -58,7 +67,7 @@ class GoogleAuthController extends Controller
                     'password' => bcrypt(uniqid()), // Random password since OAuth
                     'account_type' => 'student', // Default to student
                     'google_id' => $googleUser->getId(),
-                    'avatar' => $googleUser->getAvatar(),
+                    'avatar' => $avatarUrl,
                 ]);
 
                 Auth::login($user);

@@ -48,7 +48,8 @@ class HandleInertiaRequests extends Middleware
                     'id'           => $request->user()->id,
                     'name'         => $request->user()->name,
                     'email'        => $request->user()->email,
-                    'account_type' => $request->user()->account_type, // <-- Important!
+                    'account_type' => $request->user()->account_type,
+                    'avatar'       => $request->user()->avatar, // Google avatar URL
                 ] : null,
                 'unread_notifications_count' => $request->user() 
                     ? $request->user()->unreadNotifications()->count() 
