@@ -23,9 +23,14 @@ class DatabaseSeeder extends Seeder
             SectionSeeder::class,
             QuizSeeder::class,
         ]);
-        User::factory()->create([
-            'name' => 'Test User',
-            'email' => 'test@example.com',
-        ]);
+        
+        // Create a test student user if it doesn't exist
+        if (!User::where('email', 'student@example.com')->exists()) {
+            User::factory()->create([
+                'name' => 'Test Student',
+                'email' => 'student@example.com',
+                'account_type' => 'student',
+            ]);
+        }
     }
 }
