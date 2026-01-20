@@ -20,7 +20,7 @@ import ClassInfoDialogStudent from '@/components/ClassInfoDialogStudent.vue'
 import ClassShareDialogStudent from '@/components/ClassShareDialogStudent.vue'
 import { toast } from 'vue-sonner'
 import { Search, BookOpen, Plus } from 'lucide-vue-next'
-import { Head, router } from '@inertiajs/vue3'
+import { Head } from '@inertiajs/vue3'
 import AppLayout from '@/layouts/AuthLayoutStudent.vue'
 
 type CardAction = 'archive' | 'unenroll' | 'edit' | 'delete' | 'copy-link'
