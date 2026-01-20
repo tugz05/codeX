@@ -122,7 +122,6 @@ class ActivityController extends Controller
             ]);
 
         // Load students for the class
-        $classlist->load('section');
         $students = $classlist->students()
             ->wherePivot('status', 'active')
             ->withPivot('joined_at', 'status')
