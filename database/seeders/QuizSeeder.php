@@ -24,7 +24,7 @@ class QuizSeeder extends Seeder
             $instructor = User::factory()->create([
                 'name' => 'Test Instructor',
                 'email' => 'test@example.com',
-                'role' => 'instructor',
+                'account_type' => 'instructor',
             ]);
         }
 
@@ -32,21 +32,13 @@ class QuizSeeder extends Seeder
         $classlist = Classlist::first();
 
         if (!$classlist) {
-            // Get first section
-            $section = DB::table('sections')->first();
-
-            if ($section) {
-                $classlist = Classlist::create([
-                    'user_id' => $instructor->id,
-                    'name' => 'Sample Class',
-                    'room' => 'Room 101',
-                    'academic_year' => '2024-2025',
-                    'section_id' => $section->id,
-                ]);
-            } else {
-                $this->command->warn('No section found. Please run SectionSeeder first.');
-                return;
-            }
+            $classlist = Classlist::create([
+                'user_id' => $instructor->id,
+                'name' => 'Sample Class',
+                'room' => 'Room 101',
+                'academic_year' => '2024-2025',
+                'section' => 'Sample Section',
+            ]);
         }
 
         // Create a quiz
