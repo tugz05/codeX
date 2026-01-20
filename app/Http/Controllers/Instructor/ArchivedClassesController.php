@@ -15,7 +15,7 @@ class ArchivedClassesController extends Controller
      */
     public function index()
     {
-        $archivedClasses = Classlist::with(['section', 'students'])
+        $archivedClasses = Classlist::with(['students'])
             ->where('user_id', Auth::id())
             ->where('is_archived', true)
             ->withCount(['students' => function ($query) {

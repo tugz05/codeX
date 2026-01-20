@@ -113,7 +113,7 @@ class LandingPageController extends Controller
                     'classlist' => [
                         'id' => $classlist->id,
                         'name' => $classlist->name,
-                        'section' => $classlist->section?->name,
+                        'section' => $classlist->section,
                     ],
                     'top_students' => $topStudents,
                 ];

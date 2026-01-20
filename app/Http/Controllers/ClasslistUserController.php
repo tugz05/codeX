@@ -21,12 +21,12 @@ class ClasslistUserController extends Controller
             ]);
         }
 
-        $activeEnrollments = ClassListUser::with(['classlist.section'])
+        $activeEnrollments = ClassListUser::with(['classlist'])
             ->where('user_id', Auth::id())
             ->where('status', 'active')
             ->get();
 
-        $archivedEnrollments = ClassListUser::with(['classlist.section'])
+        $archivedEnrollments = ClassListUser::with(['classlist'])
             ->where('user_id', Auth::id())
             ->where('status', 'archive')
             ->get();

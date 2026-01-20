@@ -15,7 +15,7 @@ class ArchivedClassesController extends Controller
      */
     public function index()
     {
-        $archivedEnrollments = ClassListUser::with(['classlist.section'])
+        $archivedEnrollments = ClassListUser::with(['classlist'])
             ->where('user_id', Auth::id())
             ->where('status', 'archive')
             ->orderBy('updated_at', 'desc')

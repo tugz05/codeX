@@ -22,7 +22,7 @@ class StudentGradesController extends Controller
         $userId = Auth::id();
 
         // Get enrolled classes
-        $enrolledClasses = ClassListUser::with(['classlist.section'])
+        $enrolledClasses = ClassListUser::with(['classlist'])
             ->where('user_id', $userId)
             ->where('status', 'active')
             ->get();
@@ -157,10 +157,7 @@ class StudentGradesController extends Controller
                     'id' => $classlist->id,
                     'name' => $classlist->name,
                     'academic_year' => $classlist->academic_year,
-                    'section' => $classlist->section ? [
-                        'id' => $classlist->section->id,
-                        'name' => $classlist->section->name,
-                    ] : null,
+                    'section' => $classlist->section,
                 ],
                 'grades' => $allGrades,
                 'statistics' => [

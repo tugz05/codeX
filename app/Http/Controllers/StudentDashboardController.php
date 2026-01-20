@@ -26,7 +26,7 @@ class StudentDashboardController extends Controller
         $now = Carbon::now();
 
         // Get enrolled classes
-        $enrolledClasses = ClassListUser::with(['classlist.section'])
+        $enrolledClasses = ClassListUser::with(['classlist'])
             ->where('user_id', $userId)
             ->where('status', 'active')
             ->get()
@@ -37,10 +37,7 @@ class StudentDashboardController extends Controller
                     'name' => $classlist->name,
                     'academic_year' => $classlist->academic_year,
                     'room' => $classlist->room,
-                    'section' => $classlist->section ? [
-                        'id' => $classlist->section->id,
-                        'name' => $classlist->section->name,
-                    ] : null,
+                    'section' => $classlist->section,
                     'joined_at' => $enrollment->joined_at?->toIso8601String(),
                 ];
             });

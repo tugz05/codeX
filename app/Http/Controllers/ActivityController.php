@@ -158,7 +158,7 @@ class ActivityController extends Controller
                 'name' => $classlist->name,
                 'room' => $classlist->room,
                 'academic_year' => $classlist->academic_year,
-                'section' => $classlist->section?->name,
+                'section' => $classlist->section,
                 'criteriaOptions' => $criteria,
             ],
             'activities' => $activities,
