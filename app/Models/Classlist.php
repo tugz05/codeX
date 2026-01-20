@@ -53,6 +53,11 @@ class Classlist extends Model
         return $this->hasOne(AcademicYear::class, 'foreign_key', 'local_key');
     }
 
+    public function user(): BelongsTo
+    {
+        return $this->belongsTo(User::class);
+    }
+
     public function students()
     {
         return $this->belongsToMany(User::class, 'classlist_user')
