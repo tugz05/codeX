@@ -3,10 +3,10 @@ import { computed } from 'vue';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { EllipsisVertical, MapPin, GraduationCap, Calendar, Archive, LogOut, BookOpen, Clock, ArrowRight } from 'lucide-vue-next';
+import { EllipsisVertical, MapPin, GraduationCap, Calendar, Archive, LogOut, BookOpen, Clock, ArrowRight, Info, Share2 } from 'lucide-vue-next';
 import { Link } from '@inertiajs/vue3';
 
-type CardAction = 'archive' | 'unenroll' | 'edit' | 'delete' | 'copy-link' | 'restore';
+type CardAction = 'archive' | 'unenroll' | 'edit' | 'delete' | 'copy-link' | 'restore' | 'info' | 'share';
 
 const props = defineProps<{
   id: string;
@@ -215,6 +215,14 @@ const currentColor = computed(() => colorClasses[getClassColor.value as keyof ty
           </button>
         </DropdownMenuTrigger>
         <DropdownMenuContent class="w-48" align="end">
+          <DropdownMenuItem @click="handleAction('info', id)">
+            <Info class="mr-2 h-4 w-4" />
+            <span>Class Info</span>
+          </DropdownMenuItem>
+          <DropdownMenuItem @click="handleAction('share', id)">
+            <Share2 class="mr-2 h-4 w-4" />
+            <span>Share Class</span>
+          </DropdownMenuItem>
           <DropdownMenuItem
             v-for="option in options"
             :key="option.action"

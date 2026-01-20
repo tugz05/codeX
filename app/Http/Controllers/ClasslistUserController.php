@@ -135,4 +135,36 @@ class ClasslistUserController extends Controller
 
         return redirect()->back()->with('success', 'Class restored successfully.');
     }
+
+    // Get class details for student
+    public function show(Request $request, $id)
+    {
+        // Ensure student is enrolled in this class
+        $enrollment = ClassListUser::with(['classlist.user'])
+            ->where('classlist_id', $id)
+            ->where('user_id', Auth::id())
+            ->firstOrFail();
+
+        $classlist = $enrollment->classlist;
+        
+        // Get students count
+        $studentsCount = \App\Models\Student\ClassListUser::where('classlist_id', $id)
+            ->where('status', 'active')
+            ->count();
+
+        return response()->json([
+            'id' => $classlist->id,
+            'name' => $classlist->name,
+            'section' => $classlist->section,
+            'room' => $classlist->room,
+            'academic_year' => $classlist->academic_year,
+            'instructor' => [
+                'name' => $classlist->user->name ?? 'Unknown',
+                'email' => $classlist->user->email ?? 'N/A',
+            ],
+            'students_count' => $studentsCount,
+            'joined_at' => $enrollment->joined_at?->toISOString(),
+            'created_at' => $classlist->created_at?->toISOString(),
+        ]);
+    }
 }

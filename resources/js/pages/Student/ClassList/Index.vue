@@ -16,9 +16,11 @@ import {
 } from '@/components/ui/alert-dialog'
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
 import VClassCardStudent from '@/components/VClassCardStudent.vue'
+import ClassInfoDialogStudent from '@/components/ClassInfoDialogStudent.vue'
+import ClassShareDialogStudent from '@/components/ClassShareDialogStudent.vue'
 import { toast } from 'vue-sonner'
 import { Search, BookOpen, Plus } from 'lucide-vue-next'
-import { Head } from '@inertiajs/vue3'
+import { Head, router } from '@inertiajs/vue3'
 import AppLayout from '@/layouts/AuthLayoutStudent.vue'
 
 type CardAction = 'archive' | 'unenroll' | 'edit' | 'delete' | 'copy-link'
@@ -39,6 +41,13 @@ const props = defineProps<{
 const showDialog = ref(false)
 const classCode = ref('')
 const searchQuery = ref('')
+
+// Class info and share dialogs
+const showInfoDialog = ref(false)
+const showShareDialog = ref(false)
+const selectedClassId = ref<string | null>(null)
+const selectedClassName = ref<string>('')
+const classInfoData = ref<any>(null)
 
 // Confirmation dialog state
 const confirmDialog = ref(false)
@@ -85,6 +94,41 @@ function requestArchive(id: string) {
   targetClassId.value = id
   confirmType.value = 'archive'
   confirmDialog.value = true
+}
+
+function handleClassInfo(id: string) {
+  selectedClassId.value = id
+  const selectedClass = props.joinedClasses.find(cls => cls.id === id)
+  selectedClassName.value = selectedClass?.name || ''
+  
+  // Fetch class details
+  router.get(route('student.class.show', id), {}, {
+    preserveState: true,
+    preserveScroll: true,
+    only: [],
+    onSuccess: (page) => {
+      // The data will come from the controller response
+    },
+  })
+  
+  // Fetch class info via API
+  fetch(route('student.class.show', id))
+    .then(response => response.json())
+    .then(data => {
+      classInfoData.value = data
+      showInfoDialog.value = true
+    })
+    .catch(error => {
+      console.error('Error fetching class info:', error)
+      toast.error('Failed to load class information')
+    })
+}
+
+function handleShareClass(id: string) {
+  selectedClassId.value = id
+  const selectedClass = props.joinedClasses.find(cls => cls.id === id)
+  selectedClassName.value = selectedClass?.name || ''
+  showShareDialog.value = true
 }
 function doConfirm() {
   if (!targetClassId.value) return
@@ -198,6 +242,8 @@ const filteredClasses = computed(() => {
           :to-url="route('student.activities.index', cls.id)"
           @unenroll="requestUnenroll"
           @archive="requestArchive"
+          @info="handleClassInfo"
+          @share="handleShareClass"
         />
       </div>
 
@@ -301,5 +347,18 @@ const filteredClasses = computed(() => {
         </AlertDialogFooter>
       </AlertDialogContent>
     </AlertDialog>
+
+    <!-- Class Info Dialog -->
+    <ClassInfoDialogStudent
+      v-model:open="showInfoDialog"
+      :class-data="classInfoData"
+    />
+
+    <!-- Class Share Dialog -->
+    <ClassShareDialogStudent
+      v-model:open="showShareDialog"
+      :class-id="selectedClassId || ''"
+      :class-name="selectedClassName"
+    />
   </AppLayout>
 </template>

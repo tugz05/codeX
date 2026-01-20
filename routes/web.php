@@ -164,6 +164,7 @@ Route::middleware([StudentMiddleware::class])->prefix('student')->name('student.
     
     Route::get('/classlist', [ClasslistUserController::class, 'index'])->name('classlist');
     Route::post('/class-join', [ClasslistUserController::class, 'join'])->name('class.join');
+    Route::get('/class/{id}', [ClasslistUserController::class, 'show'])->name('class.show');
     Route::post('/class-unenroll/{id}', [ClasslistUserController::class, 'unenroll'])->name('class.unenroll');
     Route::post('/class-archive/{id}', [ClasslistUserController::class, 'archive'])->name('class.archive');
     Route::post('/class-restore/{id}', [ClasslistUserController::class, 'restore'])->name('class.restore');
