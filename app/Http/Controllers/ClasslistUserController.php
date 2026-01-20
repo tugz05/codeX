@@ -152,19 +152,40 @@ class ClasslistUserController extends Controller
             ->where('status', 'active')
             ->count();
 
-        return response()->json([
-            'id' => $classlist->id,
-            'name' => $classlist->name,
-            'section' => $classlist->section,
-            'room' => $classlist->room,
-            'academic_year' => $classlist->academic_year,
-            'instructor' => [
-                'name' => $classlist->user->name ?? 'Unknown',
-                'email' => $classlist->user->email ?? 'N/A',
+        // If it's an AJAX/API request, return JSON
+        if ($request->wantsJson() || $request->ajax()) {
+            return response()->json([
+                'id' => $classlist->id,
+                'name' => $classlist->name,
+                'section' => $classlist->section,
+                'room' => $classlist->room,
+                'academic_year' => $classlist->academic_year,
+                'instructor' => [
+                    'name' => $classlist->user->name ?? 'Unknown',
+                    'email' => $classlist->user->email ?? 'N/A',
+                ],
+                'students_count' => $studentsCount,
+                'joined_at' => $enrollment->joined_at?->toISOString(),
+                'created_at' => $classlist->created_at?->toISOString(),
+            ]);
+        }
+
+        // For Inertia requests (shouldn't happen, but just in case)
+        return Inertia::render('Student/ClassList/Index', [
+            'classInfo' => [
+                'id' => $classlist->id,
+                'name' => $classlist->name,
+                'section' => $classlist->section,
+                'room' => $classlist->room,
+                'academic_year' => $classlist->academic_year,
+                'instructor' => [
+                    'name' => $classlist->user->name ?? 'Unknown',
+                    'email' => $classlist->user->email ?? 'N/A',
+                ],
+                'students_count' => $studentsCount,
+                'joined_at' => $enrollment->joined_at?->toISOString(),
+                'created_at' => $classlist->created_at?->toISOString(),
             ],
-            'students_count' => $studentsCount,
-            'joined_at' => $enrollment->joined_at?->toISOString(),
-            'created_at' => $classlist->created_at?->toISOString(),
         ]);
     }
 }

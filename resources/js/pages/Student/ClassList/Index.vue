@@ -101,19 +101,20 @@ function handleClassInfo(id: string) {
   const selectedClass = props.joinedClasses.find(cls => cls.id === id)
   selectedClassName.value = selectedClass?.name || ''
   
-  // Fetch class details
-  router.get(route('student.class.show', id), {}, {
-    preserveState: true,
-    preserveScroll: true,
-    only: [],
-    onSuccess: (page) => {
-      // The data will come from the controller response
+  // Fetch class info via API
+  fetch(route('student.class.show', id), {
+    method: 'GET',
+    headers: {
+      'Accept': 'application/json',
+      'X-Requested-With': 'XMLHttpRequest',
     },
   })
-  
-  // Fetch class info via API
-  fetch(route('student.class.show', id))
-    .then(response => response.json())
+    .then(response => {
+      if (!response.ok) {
+        throw new Error('Failed to fetch class information')
+      }
+      return response.json()
+    })
     .then(data => {
       classInfoData.value = data
       showInfoDialog.value = true
