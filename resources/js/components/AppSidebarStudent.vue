@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import NavMain from '@/components/NavMain.vue';
 import NavUser from '@/components/NavUser.vue';
+import BottomNavigation from '@/components/BottomNavigation.vue';
 import { Sidebar, SidebarContent, SidebarFooter, SidebarHeader, SidebarMenu, SidebarMenuButton, SidebarMenuItem } from '@/components/ui/sidebar';
 import { Link, router } from '@inertiajs/vue3';
 import { HomeIcon, LayoutGrid, NotebookText, ClipboardList, GraduationCap, LayoutDashboard, BookOpen, Calendar, Archive } from 'lucide-vue-next';
@@ -9,7 +10,7 @@ import { computed, ref } from 'vue';
 
 // Get the current class ID from the URL
 const getCurrentClassId = () => {
-    const matches = window.location.pathname.match(/\/student\/classlist\/(\d+)/);
+    const matches = window.location.pathname.match(/\/student\/classlist\/([^\/]+)/);
     return matches ? matches[1] : null;
 };
 
@@ -73,10 +74,39 @@ const generateNavItems = (classId: string | null) => [
 ];
 
 const mainNavItems = ref(generateNavItems(getCurrentClassId()));
+
+// Base nav items for bottom navigation (always visible items, excluding class-specific ones)
+const baseNavItems = computed(() => [
+    {
+        title: 'Dashboard',
+        href: route('student.dashboard'),
+        icon: LayoutDashboard,
+    },
+    {
+        title: 'My Classes',
+        href: route('student.classlist'),
+        icon: HomeIcon,
+    },
+    {
+        title: 'My Grades',
+        href: route('student.grades.index'),
+        icon: BookOpen,
+    },
+    {
+        title: 'Calendar',
+        href: route('student.calendar.index'),
+        icon: Calendar,
+    },
+    {
+        title: 'Archived',
+        href: route('student.archived-classes.index'),
+        icon: Archive,
+    },
+]);
 </script>
 
 <template>
-    <Sidebar collapsible="icon" variant="inset">
+    <Sidebar collapsible="icon" variant="inset" class="hidden md:flex">
         <SidebarHeader>
             <SidebarMenu>
                 <SidebarMenuItem>
@@ -97,5 +127,6 @@ const mainNavItems = ref(generateNavItems(getCurrentClassId()));
             <NavUser />
         </SidebarFooter>
     </Sidebar>
+    <BottomNavigation :items="baseNavItems" />
     <slot />
 </template>

@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import NavMain from '@/components/NavMain.vue';
 import NavUser from '@/components/NavUser.vue';
+import BottomNavigation from '@/components/BottomNavigation.vue';
 import { Sidebar, SidebarContent, SidebarFooter, SidebarHeader, SidebarMenu, SidebarMenuButton, SidebarMenuItem } from '@/components/ui/sidebar';
 import { type NavItem } from '@/types';
 import { Link } from '@inertiajs/vue3';
@@ -37,7 +38,7 @@ const mainNavItems: NavItem[] = [
 </script>
 
 <template>
-    <Sidebar collapsible="icon" variant="inset">
+    <Sidebar collapsible="icon" variant="inset" class="hidden md:flex">
         <SidebarHeader>
             <SidebarMenu>
                 <SidebarMenuItem>
@@ -58,5 +59,6 @@ const mainNavItems: NavItem[] = [
             <NavUser />
         </SidebarFooter>
     </Sidebar>
+    <BottomNavigation :items="mainNavItems" />
     <slot />
 </template>

@@ -20,7 +20,7 @@ withDefaults(defineProps<Props>(), {
         <AppSidebar />
         <AppContent variant="sidebar" class="overflow-x-hidden flex flex-col min-h-screen">
             <AppSidebarHeader :breadcrumbs="breadcrumbs" />
-            <div class="flex-1">
+            <div class="flex-1 pb-16 md:pb-0">
                 <slot />
             </div>
             <AppFooter />

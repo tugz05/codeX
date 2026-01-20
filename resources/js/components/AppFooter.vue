@@ -2,7 +2,7 @@
 </script>
 
 <template>
-  <footer class="border-t border-border bg-muted/30 py-4 mt-auto">
+  <footer class="hidden md:block border-t border-border bg-muted/30 py-4 mt-auto">
     <div class="container mx-auto px-4 sm:px-6 lg:px-8">
       <div class="flex flex-col items-center justify-center gap-2 text-center">
         <p class="text-xs text-muted-foreground">
