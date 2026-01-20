@@ -433,8 +433,8 @@ function getStatusColor(status: string) {
               </Button>
             </div>
           </div>
-          <div v-if="hasStudents" class="max-h-96 overflow-y-auto rounded-lg border">
-            <Table>
+          <div v-if="hasStudents" class="max-h-[50vh] overflow-y-auto rounded-lg border">
+            <Table class="w-full">
               <TableHeader class="sticky top-0 bg-background z-10">
                 <TableRow>
                   <TableHead class="w-12">#</TableHead>
@@ -517,8 +517,8 @@ function getStatusColor(status: string) {
               </Button>
             </div>
           </div>
-          <div class="max-h-96 overflow-y-auto rounded-lg border">
-            <Table>
+          <div class="max-h-[50vh] overflow-y-auto rounded-lg border">
+            <Table class="w-full">
               <TableHeader class="sticky top-0 bg-background z-10">
                 <TableRow>
                   <TableHead class="w-12">#</TableHead>
