@@ -44,6 +44,8 @@ class Comment extends Model
     
     /**
      * Get replies visible to a specific user
+     * Instructors see all replies
+     * Students see public replies and their own private replies
      */
     public function repliesVisibleTo($user)
     {
@@ -53,7 +55,19 @@ class Comment extends Model
             // Instructors see all replies
             return $query;
         }
-        // Students see only public replies
+        
+        if ($user) {
+            // Students see public replies OR their own private replies
+            return $query->where(function($q) use ($user) {
+                $q->where('visibility', 'public')
+                  ->orWhere(function($subQ) use ($user) {
+                      $subQ->where('visibility', 'private')
+                           ->where('user_id', $user->id);
+                  });
+            });
+        }
+        
+        // If no user, show only public replies
         return $query->where('visibility', 'public');
     }
 
@@ -64,7 +78,8 @@ class Comment extends Model
 
     /**
      * Scope to filter comments based on user role and visibility
-     * Students see only public comments, instructors see all
+     * Instructors see all comments (public and private)
+     * Students see public comments and their own private comments
      */
     public function scopeVisibleTo($query, $user)
     {
@@ -72,7 +87,19 @@ class Comment extends Model
             // Instructors see all comments (public and private)
             return $query;
         }
-        // Students see only public comments
+        
+        if ($user) {
+            // Students see public comments OR their own private comments
+            return $query->where(function($q) use ($user) {
+                $q->where('visibility', 'public')
+                  ->orWhere(function($subQ) use ($user) {
+                      $subQ->where('visibility', 'private')
+                           ->where('user_id', $user->id);
+                  });
+            });
+        }
+        
+        // If no user, show only public comments
         return $query->where('visibility', 'public');
     }
 }
