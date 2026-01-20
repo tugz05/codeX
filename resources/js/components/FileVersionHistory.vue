@@ -82,39 +82,40 @@ const handleDownload = (url: string) => {
         </DialogTitle>
       </DialogHeader>
       <div class="overflow-y-auto max-h-[60vh]">
-      <div class="space-y-3">
-        <div
-          v-for="version in sortedVersions"
-          :key="version.id"
-          class="flex items-start gap-4 p-4 border rounded-lg hover:bg-accent/50 transition-colors"
-          :class="{ 'border-primary bg-primary/5': version.is_current }"
-        >
-          <div class="flex-1 min-w-0">
-            <div class="flex items-center gap-2 mb-2">
-              <Badge :variant="version.is_current ? 'default' : 'outline'">
-                v{{ version.version }}
-                <span v-if="version.is_current" class="ml-1">(Current)</span>
-              </Badge>
-              <span class="text-sm font-medium truncate">{{ version.name }}</span>
-            </div>
-            <div class="flex items-center gap-4 text-xs text-muted-foreground mb-2">
-              <div class="flex items-center gap-1">
-                <Clock class="h-3 w-3" />
-                {{ formatDate(version.created_at) }}
+        <div class="space-y-3">
+          <div
+            v-for="version in sortedVersions"
+            :key="version.id"
+            class="flex items-start gap-4 p-4 border rounded-lg hover:bg-accent/50 transition-colors"
+            :class="{ 'border-primary bg-primary/5': version.is_current }"
+          >
+            <div class="flex-1 min-w-0">
+              <div class="flex items-center gap-2 mb-2">
+                <Badge :variant="version.is_current ? 'default' : 'outline'">
+                  v{{ version.version }}
+                  <span v-if="version.is_current" class="ml-1">(Current)</span>
+                </Badge>
+                <span class="text-sm font-medium truncate">{{ version.name }}</span>
               </div>
-              <span>{{ formatFileSize(version.size) }}</span>
+              <div class="flex items-center gap-4 text-xs text-muted-foreground mb-2">
+                <div class="flex items-center gap-1">
+                  <Clock class="h-3 w-3" />
+                  {{ formatDate(version.created_at) }}
+                </div>
+                <span>{{ formatFileSize(version.size) }}</span>
+              </div>
+              <p v-if="version.version_notes" class="text-sm text-muted-foreground mt-2">
+                {{ version.version_notes }}
+              </p>
             </div>
-            <p v-if="version.version_notes" class="text-sm text-muted-foreground mt-2">
-              {{ version.version_notes }}
-            </p>
-          </div>
-          <div class="flex items-center gap-2 shrink-0">
-            <Button variant="outline" size="sm" @click="openPreview(version)">
-              Preview
-            </Button>
-            <Button variant="ghost" size="icon" @click="handleDownload(version.url)">
-              <Download class="h-4 w-4" />
-            </Button>
+            <div class="flex items-center gap-2 shrink-0">
+              <Button variant="outline" size="sm" @click="openPreview(version)">
+                Preview
+              </Button>
+              <Button variant="ghost" size="icon" @click="handleDownload(version.url)">
+                <Download class="h-4 w-4" />
+              </Button>
+            </div>
           </div>
         </div>
       </div>
