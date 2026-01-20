@@ -84,10 +84,10 @@ function formatDate(dateString: string | null): string {
         </CardContent>
       </Card>
 
-      <!-- Students List Card -->
+      <!-- Students List Card + Attendance navigation -->
       <Card class="border-2">
         <CardHeader>
-          <div class="flex items-center justify-between">
+          <div class="flex items-center justify-between gap-3 flex-wrap">
             <div>
               <CardTitle class="flex items-center gap-2">
                 <Users class="h-5 w-5" />
@@ -97,9 +97,19 @@ function formatDate(dateString: string | null): string {
                 List of all students who have joined this class
               </CardDescription>
             </div>
-            <Badge variant="outline" class="text-sm px-3 py-1">
-              {{ props.total_students }} {{ props.total_students === 1 ? 'Student' : 'Students' }}
-            </Badge>
+            <div class="flex items-center gap-3">
+              <Badge variant="outline" class="text-sm px-3 py-1">
+                {{ props.total_students }} {{ props.total_students === 1 ? 'Student' : 'Students' }}
+              </Badge>
+              <Button
+                as="a"
+                variant="outline"
+                size="sm"
+                :href="route('instructor.attendance.index', props.classlist.id)"
+              >
+                Mark / View Attendance
+              </Button>
+            </div>
           </div>
         </CardHeader>
         <CardContent>
@@ -110,34 +120,48 @@ function formatDate(dateString: string | null): string {
           </div>
 
           <div v-else class="space-y-3">
-            <div
-              v-for="(student, index) in props.students"
-              :key="student.id"
-              class="flex items-center justify-between p-4 border-2 rounded-lg"
-            >
-              <div class="flex items-center gap-4 flex-1">
-                <div class="flex items-center justify-center w-10 h-10 border-2 rounded-full font-semibold text-sm">
-                  {{ index + 1 }}
-                </div>
-                <div class="flex-1 min-w-0">
-                  <div class="flex items-center gap-2 mb-1">
-                    <p class="text-base font-semibold">{{ student.name }}</p>
-                    <Badge v-if="student.status === 'active'" variant="outline" class="text-xs">
-                      Active
-                    </Badge>
-                  </div>
-                  <div class="flex items-center gap-4 text-sm text-muted-foreground">
-                    <div class="flex items-center gap-1">
-                      <Mail class="h-3 w-3" />
-                      <span>{{ student.email }}</span>
-                    </div>
-                    <div v-if="student.joined_at" class="flex items-center gap-1">
-                      <Calendar class="h-3 w-3" />
-                      <span>Joined {{ formatDate(student.joined_at) }}</span>
-                    </div>
-                  </div>
-                </div>
-              </div>
+            <div class="overflow-x-auto rounded-lg border">
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead class="w-12">#</TableHead>
+                    <TableHead>Name</TableHead>
+                    <TableHead>Email</TableHead>
+                    <TableHead>Joined At</TableHead>
+                    <TableHead class="text-right">Status</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  <TableRow
+                    v-for="(student, index) in props.students"
+                    :key="student.id"
+                  >
+                    <TableCell class="font-medium">{{ index + 1 }}</TableCell>
+                    <TableCell>
+                      <div class="flex items-center gap-3">
+                        <div class="flex items-center justify-center w-8 h-8 border rounded-full text-xs font-semibold">
+                          {{ index + 1 }}
+                        </div>
+                        <span class="truncate">{{ student.name }}</span>
+                      </div>
+                    </TableCell>
+                    <TableCell class="text-sm text-muted-foreground">
+                      {{ student.email }}
+                    </TableCell>
+                    <TableCell class="text-sm text-muted-foreground">
+                      <span v-if="student.joined_at">
+                        {{ formatDate(student.joined_at) }}
+                      </span>
+                      <span v-else>-</span>
+                    </TableCell>
+                    <TableCell class="text-right">
+                      <Badge variant="outline" class="text-xs px-2 py-0.5">
+                        {{ student.status || 'Active' }}
+                      </Badge>
+                    </TableCell>
+                  </TableRow>
+                </TableBody>
+              </Table>
             </div>
           </div>
         </CardContent>

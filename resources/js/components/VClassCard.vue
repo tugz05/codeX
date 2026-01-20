@@ -3,7 +3,7 @@ import { computed, ref } from 'vue';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { EllipsisVertical, Users, MapPin, GraduationCap, Copy, Edit, Archive, Trash2, BookOpen, Calendar, ArrowRight, TrendingUp, Share2 } from 'lucide-vue-next';
+import { EllipsisVertical, Users, MapPin, GraduationCap, Copy, Edit, Archive, Trash2, BookOpen, Calendar, ArrowRight, TrendingUp, Share2, UserCheck } from 'lucide-vue-next';
 import { Link } from '@inertiajs/vue3';
 import { toast } from 'vue-sonner';
 import ClassShareDialog from './ClassShareDialog.vue';

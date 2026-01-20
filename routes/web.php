@@ -59,6 +59,14 @@ Route::middleware([InstructorMiddleware::class])->prefix('instructor')->name('in
     Route::get('/classlist/{classlist}/gradebook/export/excel', [\App\Http\Controllers\GradebookController::class, 'exportExcel'])->name('gradebook.export.excel');
     Route::get('/classlist/{classlist}/gradebook/export/pdf', [\App\Http\Controllers\GradebookController::class, 'exportPdf'])->name('gradebook.export.pdf');
 
+    // Attendance routes
+    Route::get('/classlist/{classlist}/attendance', [\App\Http\Controllers\AttendanceController::class, 'index'])->name('attendance.index');
+    Route::post('/classlist/{classlist}/attendance', [\App\Http\Controllers\AttendanceController::class, 'store'])->name('attendance.store');
+    Route::get('/attendance/{session}/edit', [\App\Http\Controllers\AttendanceController::class, 'edit'])->name('attendance.edit');
+    Route::put('/attendance/{session}', [\App\Http\Controllers\AttendanceController::class, 'update'])->name('attendance.update');
+    Route::delete('/attendance/{session}', [\App\Http\Controllers\AttendanceController::class, 'destroy'])->name('attendance.destroy');
+    Route::get('/classlist/{classlist}/attendance/report', [\App\Http\Controllers\AttendanceController::class, 'report'])->name('attendance.report');
+
     // Calendar
     Route::get('/calendar', [\App\Http\Controllers\CalendarController::class, 'indexInstructor'])->name('calendar.index');
     Route::get('/calendar/export', [\App\Http\Controllers\CalendarController::class, 'exportIcal'])->name('calendar.export');
@@ -175,6 +183,13 @@ Route::middleware([StudentMiddleware::class])->prefix('student')->name('student.
 
     Route::get('/classlist/{classlist}/activities', [StudentActivityController::class, 'index'])
         ->name('activities.index');
+
+    // Submissions
+    Route::get('/classlist/{classlist}/submissions', [\App\Http\Controllers\Student\SubmissionHistoryController::class, 'index'])
+        ->name('submissions.index');
+
+    // Attendance routes
+    Route::get('/classlist/{classlist}/attendance', [\App\Http\Controllers\StudentAttendanceController::class, 'index'])->name('attendance.index');
 
     // Activity details
     Route::get('/classlist/{classlist}/activities/{activity}', [StudentActivityController::class, 'show'])

@@ -2,6 +2,7 @@
 import Breadcrumbs from '@/components/Breadcrumbs.vue';
 import NotificationBell from '@/components/NotificationBell.vue';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { SidebarTrigger } from '@/components/ui/sidebar';
@@ -10,6 +11,7 @@ import { getInitials } from '@/composables/useInitials';
 import type { BreadcrumbItemType } from '@/types';
 import { usePage } from '@inertiajs/vue3';
 import { computed } from 'vue';
+import { GraduationCap } from 'lucide-vue-next';
 
 withDefaults(
     defineProps<{
@@ -22,6 +24,26 @@ withDefaults(
 
 const page = usePage();
 const auth = computed(() => page.props.auth);
+
+const accountTypeLabel = computed(() => {
+  const type = auth.value?.user?.account_type;
+  if (!type) return '';
+  return type.charAt(0).toUpperCase() + type.slice(1);
+});
+
+const accountTypeVariant = computed(() => {
+  const type = auth.value?.user?.account_type;
+  switch (type) {
+    case 'student':
+      return 'default';
+    case 'instructor':
+      return 'secondary';
+    case 'admin':
+      return 'destructive';
+    default:
+      return 'outline';
+  }
+});
 </script>
 
 <template>
@@ -35,6 +57,14 @@ const auth = computed(() => page.props.auth);
             </template>
         </div>
         <div class="flex items-center gap-2">
+            <Badge 
+                v-if="auth?.user?.account_type" 
+                :variant="accountTypeVariant"
+                class="hidden sm:flex items-center gap-1.5 px-2.5 py-1 text-xs font-medium"
+            >
+                <GraduationCap class="h-3 w-3" />
+                {{ accountTypeLabel }}
+            </Badge>
             <NotificationBell />
             <DropdownMenu v-if="auth?.user">
                 <DropdownMenuTrigger :as-child="true">

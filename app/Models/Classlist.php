@@ -69,4 +69,9 @@ class Classlist extends Model
     {
         return $this->hasMany(Activity::class, 'classlist_id', 'id');
     }
+
+    public function attendanceSessions()
+    {
+        return $this->hasMany(AttendanceSession::class, 'classlist_id', 'id');
+    }
 }

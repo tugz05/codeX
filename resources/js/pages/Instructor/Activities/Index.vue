@@ -16,6 +16,7 @@ import { Plus, ArrowLeft, FileText, ClipboardList, GraduationCap, Trash2, Edit, 
 import { ref, computed } from 'vue'
 import { toast } from 'vue-sonner'
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs'
+import AttendancePanel from '@/components/AttendancePanel.vue'
 import { Badge } from '@/components/ui/badge'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
@@ -102,6 +103,30 @@ const props = defineProps<{
     status: string
   }>
   total_students?: number
+  attendance_sessions: Array<{
+    id: number
+    session_date: string
+    session_time: string | null
+    notes: string | null
+    total_students: number
+    present_count: number
+    absent_count: number
+    late_count: number
+    excused_count: number
+  }>
+  attendance_student_stats: Array<{
+    student: {
+      id: number
+      name: string
+      email: string
+    }
+    total_sessions: number
+    present: number
+    absent: number
+    late: number
+    excused: number
+    attendance_percentage: number
+  }>
 }>()
 
 const showCreate = ref(false)
@@ -395,8 +420,9 @@ const toggleSort = (field: 'name' | 'email' | 'joined_at') => {
 
       <!-- Tabs -->
       <Tabs default-value="content" class="w-full">
-        <TabsList class="grid w-full grid-cols-2 border-2">
+        <TabsList class="grid w-full grid-cols-3 border-2">
           <TabsTrigger value="content">Content</TabsTrigger>
+          <TabsTrigger value="attendance">Attendance</TabsTrigger>
           <TabsTrigger value="students">Students</TabsTrigger>
         </TabsList>
 
@@ -721,6 +747,17 @@ const toggleSort = (field: 'name' | 'email' | 'joined_at') => {
           No content yet. Click "Create" to add an Activity, Quiz, Examination, or Material.
         </div>
           </div>
+        </TabsContent>
+
+        <!-- Attendance Tab -->
+        <TabsContent value="attendance" class="mt-4">
+          <AttendancePanel
+            :classlist="props.classlist"
+            :sessions="props.attendance_sessions"
+            :students="props.students || []"
+            :student-stats="props.attendance_student_stats"
+            :show-back="false"
+          />
         </TabsContent>
 
         <!-- Students Tab -->

@@ -64,6 +64,7 @@ interface Props {
     total_points: number;
     earned_points: number;
     overall_percentage: number;
+    attendance_percentage?: number;
   }>;
   distribution: {
     A: number;
@@ -390,6 +391,7 @@ const sortedGradedItems = computed(() => {
                   </TableHead>
                   <TableHead class="text-center">Total</TableHead>
                   <TableHead class="text-center">Average</TableHead>
+                  <TableHead class="text-center">Attendance</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -434,6 +436,12 @@ const sortedGradedItems = computed(() => {
                     <Badge :variant="getGradeBadge(studentGrade.overall_percentage).variant">
                       {{ studentGrade.overall_percentage.toFixed(1) }}%
                     </Badge>
+                  </TableCell>
+                  <TableCell class="text-center">
+                    <Badge v-if="studentGrade.attendance_percentage !== undefined" :variant="studentGrade.attendance_percentage >= 80 ? 'default' : 'destructive'">
+                      {{ studentGrade.attendance_percentage?.toFixed(1) ?? 'N/A' }}%
+                    </Badge>
+                    <span v-else class="text-muted-foreground">N/A</span>
                   </TableCell>
                 </TableRow>
               </TableBody>

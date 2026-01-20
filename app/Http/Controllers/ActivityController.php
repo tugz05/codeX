@@ -5,6 +5,8 @@ namespace App\Http\Controllers;
 
 use App\Models\Activity;
 use App\Models\ActivityAttachment;
+use App\Models\AttendanceRecord;
+use App\Models\AttendanceSession;
 use App\Models\Classlist;
 use App\Models\Criteria;
 use App\Services\NotificationService;
@@ -122,12 +124,13 @@ class ActivityController extends Controller
             ]);
 
         // Load students for the class
-        $students = $classlist->students()
-            ->wherePivot('status', 'active')
+        $studentsModel = $classlist->students()
+            ->where('classlist_user.status', 'active')
             ->withPivot('joined_at', 'status')
             ->orderBy('name')
-            ->get()
-            ->map(function ($student) {
+            ->get();
+
+        $students = $studentsModel->map(function ($student) {
                 $joinedAt = $student->pivot->joined_at;
                 // Handle both string and DateTime objects from pivot
                 if ($joinedAt) {
@@ -149,7 +152,76 @@ class ActivityController extends Controller
                     'joined_at' => $joinedAt,
                     'status' => $student->pivot->status,
                 ];
-            });
+            })->values();
+
+        $sessionModels = $classlist->attendanceSessions()
+            ->with('records')
+            ->orderBy('date', 'desc')
+            ->orderBy('created_at', 'desc')
+            ->get();
+
+        $attendanceSessions = $sessionModels->map(function ($session) {
+            return [
+                'id' => $session->id,
+                'session_date' => $session->date?->format('Y-m-d'),
+                'session_time' => null,
+                'notes' => $session->notes,
+                'total_students' => $session->records->count(),
+                'present_count' => $session->records->where('status', AttendanceRecord::STATUS_PRESENT)->count(),
+                'absent_count' => $session->records->where('status', AttendanceRecord::STATUS_ABSENT)->count(),
+                'late_count' => $session->records->where('status', AttendanceRecord::STATUS_LATE)->count(),
+                'excused_count' => $session->records->where('status', AttendanceRecord::STATUS_EXCUSED)->count(),
+            ];
+        });
+
+        $attendanceStudentStats = $studentsModel->map(function ($student) use ($sessionModels) {
+            $totalSessions = $sessionModels->count();
+            $presentCount = 0;
+            $absentCount = 0;
+            $lateCount = 0;
+            $excusedCount = 0;
+
+            foreach ($sessionModels as $session) {
+                $record = $session->records->firstWhere('user_id', $student->id);
+
+                if ($record) {
+                    switch ($record->status) {
+                        case AttendanceRecord::STATUS_PRESENT:
+                            $presentCount++;
+                            break;
+                        case AttendanceRecord::STATUS_ABSENT:
+                            $absentCount++;
+                            break;
+                        case AttendanceRecord::STATUS_LATE:
+                            $lateCount++;
+                            break;
+                        case AttendanceRecord::STATUS_EXCUSED:
+                            $excusedCount++;
+                            break;
+                    }
+                } else {
+                    $absentCount++;
+                }
+            }
+
+            $attendancePercentage = $totalSessions > 0
+                ? round((($presentCount + $excusedCount) / $totalSessions) * 100, 2)
+                : 0;
+
+            return [
+                'student' => [
+                    'id' => $student->id,
+                    'name' => $student->name,
+                    'email' => $student->email,
+                ],
+                'total_sessions' => $totalSessions,
+                'present' => $presentCount,
+                'absent' => $absentCount,
+                'late' => $lateCount,
+                'excused' => $excusedCount,
+                'attendance_percentage' => $attendancePercentage,
+            ];
+        })->values();
 
         return Inertia::render('Instructor/Activities/Index', [
             'classlist'  => [
@@ -167,6 +239,8 @@ class ActivityController extends Controller
             'materials' => $materials,
             'students' => $students,
             'total_students' => $students->count(),
+            'attendance_sessions' => $attendanceSessions,
+            'attendance_student_stats' => $attendanceStudentStats,
         ]);
     }
 

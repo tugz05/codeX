@@ -6,6 +6,8 @@ use App\Models\Activity;
 use App\Models\ActivitySubmission;
 use App\Models\Assignment;
 use App\Models\AssignmentSubmission;
+use App\Models\AttendanceRecord;
+use App\Models\AttendanceSession;
 use App\Models\Classlist;
 use App\Models\ExamAttempt;
 use App\Models\Examination;
@@ -246,12 +248,29 @@ class GradebookController extends Controller
                 ? round(($earnedPoints / $totalPoints) * 100, 2) 
                 : 0;
 
+            // Calculate attendance percentage
+            $totalSessions = AttendanceSession::where('classlist_id', $classlist->id)->count();
+            $attendanceCount = 0;
+            if ($totalSessions > 0) {
+                $presentCount = AttendanceRecord::whereIn('attendance_session_id', function($query) use ($classlist) {
+                    $query->select('id')
+                        ->from('attendance_sessions')
+                        ->where('classlist_id', $classlist->id);
+                })
+                ->where('user_id', $student['id'])
+                ->whereIn('status', [AttendanceRecord::STATUS_PRESENT, AttendanceRecord::STATUS_EXCUSED])
+                ->count();
+                
+                $attendanceCount = round(($presentCount / $totalSessions) * 100, 2);
+            }
+
             $studentGrades[] = [
                 'student' => $student,
                 'grades' => $grades,
                 'total_points' => $totalPoints,
                 'earned_points' => $earnedPoints,
                 'overall_percentage' => $overallPercentage,
+                'attendance_percentage' => $attendanceCount,
             ];
         }
 
@@ -329,7 +348,7 @@ class GradebookController extends Controller
             'Content-Disposition' => 'attachment; filename="' . $filename . '"',
         ];
 
-        $callback = function() use ($students, $gradedItems, $activities, $assignments, $quizzes, $examinations) {
+        $callback = function() use ($students, $gradedItems, $activities, $assignments, $quizzes, $examinations, $classlist) {
             $file = fopen('php://output', 'w');
             
             // Header row
@@ -340,6 +359,7 @@ class GradebookController extends Controller
             $header[] = 'Total Points';
             $header[] = 'Earned Points';
             $header[] = 'Overall Percentage';
+            $header[] = 'Attendance %';
             fputcsv($file, $header);
 
             // Data rows
@@ -397,9 +417,27 @@ class GradebookController extends Controller
                 }
 
                 $overallPercentage = $totalPoints > 0 ? round(($earnedPoints / $totalPoints) * 100, 2) : 0;
+                
+                // Calculate attendance percentage
+                $totalSessions = AttendanceSession::where('classlist_id', $classlist->id)->count();
+                $attendancePercentage = 0;
+                if ($totalSessions > 0) {
+                    $presentCount = AttendanceRecord::whereIn('attendance_session_id', function($query) use ($classlist) {
+                        $query->select('id')
+                            ->from('attendance_sessions')
+                            ->where('classlist_id', $classlist->id);
+                    })
+                    ->where('user_id', $student->id)
+                    ->whereIn('status', [AttendanceRecord::STATUS_PRESENT, AttendanceRecord::STATUS_EXCUSED])
+                    ->count();
+                    
+                    $attendancePercentage = round(($presentCount / $totalSessions) * 100, 2);
+                }
+                
                 $row[] = $totalPoints;
                 $row[] = $earnedPoints;
                 $row[] = $overallPercentage . '%';
+                $row[] = $attendancePercentage . '%';
                 fputcsv($file, $row);
             }
 
