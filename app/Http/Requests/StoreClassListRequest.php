@@ -10,7 +10,7 @@ class StoreClassListRequest extends FormRequest
     {
         return [
             'name' => 'required|string|max:255',
-            'section_id' => 'required',
+            'section' => 'required|string|max:255',
             'academic_year' => 'required|string|max:20',
             'room' => 'required|string|max:100',
         ];

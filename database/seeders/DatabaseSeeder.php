@@ -6,6 +6,7 @@ use App\Models\User;
 // use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Database\Seeders\AcademicYearSeeder;
 use Database\Seeders\SectionSeeder;
+use Database\Seeders\AdminSeeder;
 use Illuminate\Database\Seeder;
 
 class DatabaseSeeder extends Seeder
@@ -17,6 +18,7 @@ class DatabaseSeeder extends Seeder
     {
         // User::factory(10)->create();
         $this->call([
+            AdminSeeder::class,
             AcademicYearSeeder::class,
             SectionSeeder::class,
             QuizSeeder::class,

@@ -16,7 +16,7 @@ class ClasslistController extends Controller
      */
     public function index()
     {
-       $allClasses = Classlist::with(['section', 'students'])
+        $allClasses = Classlist::with(['students'])
         ->where('user_id', auth()->id())
         ->withCount(['students' => function ($query) {
             $query->where('classlist_user.status', 'active');
@@ -89,8 +89,6 @@ class ClasslistController extends Controller
         // Ensure the instructor owns this class
         abort_unless($classlist->user_id === auth()->id(), 403);
 
-        // Load the section relationship
-        $classlist->load('section');
 
         // Load students with their enrollment details
         $students = $classlist->students()
@@ -112,7 +110,7 @@ class ClasslistController extends Controller
             'classlist' => [
                 'id' => $classlist->id,
                 'name' => $classlist->name,
-                'section' => $classlist->section?->name,
+                'section' => $classlist->section,
                 'room' => $classlist->room,
                 'academic_year' => $classlist->academic_year,
             ],
@@ -136,7 +134,7 @@ public function update(Request $request, Classlist $classlist)
 {
     $validated = $request->validate([
         'name' => 'required|string|max:255',
-        'section_id' => 'nullable|exists:sections,id',
+        'section' => 'required|string|max:255',
         'academic_year' => 'required|string|max:20',
         'room' => 'required|string|max:100',
     ]);

@@ -12,7 +12,7 @@ class Classlist extends Model
     protected $fillable = [
         'id',
         'user_id',
-        'section_id',
+        'section',
         'name',
         'academic_year',
         'room',
@@ -53,10 +53,6 @@ class Classlist extends Model
         return $this->hasOne(AcademicYear::class, 'foreign_key', 'local_key');
     }
 
-    public function section(): BelongsTo
-    {
-        return $this->belongsTo(Section::class);
-    }
     public function students()
     {
         return $this->belongsToMany(User::class, 'classlist_user')

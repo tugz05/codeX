@@ -6,7 +6,7 @@ use Closure;
 use Illuminate\Http\Request;
 use Symfony\Component\HttpFoundation\Response;
 
-class InstructorMiddleware
+class AdminMiddleware
 {
     /**
      * Handle an incoming request.
@@ -23,10 +23,10 @@ class InstructorMiddleware
                 ->with('error', 'Please log in to access this page.');
         }
 
-        // If authenticated but not an instructor, redirect to login with message
-        if ($user->account_type !== 'instructor') {
+        // If authenticated but not an admin, redirect to login with message
+        if ($user->account_type !== 'admin') {
             return redirect()->route('login')
-                ->with('error', 'Please log in with an instructor account to access this page.');
+                ->with('error', 'Please log in with an admin account to access this page.');
         }
 
         return $next($request);

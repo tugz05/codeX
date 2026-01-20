@@ -34,10 +34,22 @@ class AuthenticatedSessionController extends Controller
         $request->session()->regenerate();
         // dd(Auth::user()->account_type);
         $account_type = Auth::user()->account_type;
+        
+        // Check if there's a class code in the request (from invite link)
+        $code = $request->input('code') ?: $request->query('code');
+        
+        if($account_type === 'admin'){
+            return redirect()->intended(route('admin.dashboard', absolute: false));
+        }
         if($account_type === 'instructor'){
             return redirect()->intended(route('instructor.classlist', absolute: false));
         }
         if($account_type === 'student'){
+            // If there's a code parameter, redirect to classlist with code to auto-open join dialog
+            if ($code) {
+                return redirect()->route('student.classlist', ['code' => $code])
+                    ->with('success', 'Welcome back! You can now join the class.');
+            }
             return redirect()->intended(route('student.dashboard', absolute: false));
         }
 

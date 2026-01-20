@@ -31,6 +31,9 @@ const isOpen = ref(false);
 
 const fetchNotifications = async () => {
   if (isLoading.value) return;
+  // Don't fetch if user is not authenticated
+  if (!page.props.auth?.user) return;
+  
   isLoading.value = true;
   
   try {

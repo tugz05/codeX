@@ -12,7 +12,7 @@ class ClassListService
     {
         return ClassList::create([
             'user_id' => Auth::id(),
-            'section_id' => $data['section_id'],
+            'section' => $data['section'],
             'name' => $data['name'],
             'academic_year' => $data['academic_year'],
             'room' => $data['room'],

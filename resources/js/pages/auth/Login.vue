@@ -6,25 +6,43 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import AuthBase from '@/layouts/AuthLayout.vue';
-import { Head, Link, useForm } from '@inertiajs/vue3';
+import { Head, Link, useForm, usePage } from '@inertiajs/vue3';
 import { LoaderCircle, Code, Mail, Lock, ArrowRight, ArrowLeft } from 'lucide-vue-next';
+import { computed } from 'vue';
 
-defineProps<{
+const props = defineProps<{
     status?: string;
     canResetPassword: boolean;
 }>();
+
+const page = usePage();
+const code = computed(() => {
+    const urlParams = new URLSearchParams(window.location.search);
+    return urlParams.get('code') || '';
+});
 
 const form = useForm({
     email: '',
     password: '',
     remember: false,
+    code: code.value, // Include code in form data
 });
 
 const submit = () => {
-    form.post(route('login'), {
+    const url = code.value 
+        ? route('login', { code: code.value })
+        : route('login');
+    
+    form.post(url, {
         onFinish: () => form.reset('password'),
     });
 };
+
+const googleLoginUrl = computed(() => {
+    return code.value 
+        ? route('google.redirect', { code: code.value })
+        : route('google.redirect');
+});
 </script>
 
 <template>
@@ -44,8 +62,14 @@ const submit = () => {
                 {{ status }}
             </div>
 
+            <!-- Invite Code Message -->
+            <div v-if="code" class="rounded-lg border-2 border-blue-500/20 bg-blue-50 p-3 text-center text-sm font-medium text-blue-700 dark:bg-blue-900/20 dark:text-blue-400">
+                <Code class="mx-auto mb-1 h-5 w-5" />
+                <p>You're joining a class. Please log in to continue.</p>
+            </div>
+
             <!-- Google Sign In Button -->
-            <a :href="route('google.redirect')" class="group">
+            <a :href="googleLoginUrl" class="group">
                 <Button type="button" variant="outline" class="w-full border-2 transition-all duration-300 hover:scale-[1.02] hover:shadow-lg" :tabindex="1">
                     <svg class="mr-2 h-5 w-5 transition-transform duration-300 group-hover:scale-110" viewBox="0 0 24 24">
                         <path

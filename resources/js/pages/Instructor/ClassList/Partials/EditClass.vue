@@ -3,13 +3,6 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue
-} from '@/components/ui/select'
-import {
   Sheet,
   SheetClose,
   SheetContent,
@@ -35,7 +28,7 @@ watch(() => props.open, (val) => (isOpen.value = val))
 // Form state initialized from classData
 const form = ref({
   name: '',
-  section_id: '',
+  section: '',
   academic_year: '',
   room: '',
 })
@@ -46,7 +39,7 @@ watch(
     if (newVal) {
       form.value = {
         name: newVal.name,
-        section_id: newVal.section_id,
+        section: newVal.section || '',
         academic_year: newVal.academic_year,
         room: newVal.room
       }
@@ -54,12 +47,6 @@ watch(
   },
   { immediate: true }
 )
-
-// Example section options (same as AddClass.vue)
-const sections = ref([
-  { id: 1, name: 'BSCS 1-A' },
-  { id: 2, name: 'BSCS 2-B' },
-])
 
 const submitForm = () => {
   router.put(`/instructor/classlist/${props.classData.id}`, form.value, {
@@ -106,16 +93,7 @@ const submitForm = () => {
         <!-- Section -->
         <div class="flex flex-col gap-2">
           <Label for="section" class="font-medium">Section</Label>
-          <Select v-model="form.section_id">
-            <SelectTrigger id="section">
-              <SelectValue placeholder="Select section" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem v-for="section in sections" :key="section.id" :value="section.id">
-                {{ section.name }}
-              </SelectItem>
-            </SelectContent>
-          </Select>
+          <Input id="section" v-model="form.section" placeholder="e.g. BSCS 1-A, CS-101" />
         </div>
 
         <!-- Academic Year -->

@@ -33,6 +33,7 @@ const props = defineProps<{
   joinedClasses: Array<any>
   archivedClasses?: Array<any>
   joinCode?: string
+  requiresStudentAccount?: boolean
 }>()
 
 const showDialog = ref(false)
@@ -132,7 +133,7 @@ const filteredClasses = computed(() => {
   return props.joinedClasses.filter((cls) =>
     cls.name?.toLowerCase().includes(query) ||
     cls.room?.toLowerCase().includes(query) ||
-    cls.section?.name?.toLowerCase().includes(query) ||
+    cls.section?.toLowerCase().includes(query) ||
     cls.academic_year?.toLowerCase().includes(query)
   )
 })
@@ -143,6 +144,22 @@ const filteredClasses = computed(() => {
 
   <AppLayout>
     <div class="flex h-full flex-1 flex-col gap-4 sm:gap-6 overflow-x-auto p-3 sm:p-4 md:p-6 max-w-[1600px] mx-auto w-full">
+      <!-- Alert for non-student accounts -->
+      <Alert v-if="props.requiresStudentAccount" variant="destructive" class="border-2">
+        <AlertTitle>Student Account Required</AlertTitle>
+        <AlertDescription>
+          You are currently logged in as a non-student account. To join classes, please log out and log in with a student account.
+          <Button 
+            @click="() => window.location.href = route('logout')" 
+            variant="outline" 
+            size="sm" 
+            class="ml-2 mt-2"
+          >
+            Log Out
+          </Button>
+        </AlertDescription>
+      </Alert>
+
       <!-- Page Header -->
       <div class="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
@@ -174,7 +191,7 @@ const filteredClasses = computed(() => {
           :id="cls.id"
           :title="cls.name"
           :room="cls.room"
-          :section="cls.section?.name || null"
+          :section="cls.section || null"
           :academic-year="cls.academic_year"
           :joined-at="cls.joined_at"
           :options="cardMenuOptions"
@@ -215,20 +232,43 @@ const filteredClasses = computed(() => {
       <AlertDialogContent>
         <AlertDialogHeader>
           <AlertDialogTitle>Join a Class</AlertDialogTitle>
-          <AlertDialogDescription>Enter the class code provided by your instructor.</AlertDialogDescription>
+          <AlertDialogDescription>
+            <span v-if="props.requiresStudentAccount">
+              You need to log in as a student to join this class. Please log out and log in with a student account.
+            </span>
+            <span v-else>Enter the class code provided by your instructor.</span>
+          </AlertDialogDescription>
         </AlertDialogHeader>
         <form @submit.prevent="joinClass" class="space-y-4">
-          <Input v-model="classCode" placeholder="Class code" required autofocus class="border-2" />
-          <Alert v-if="form.errors.class_code" variant="destructive">
+          <Input 
+            v-model="classCode" 
+            placeholder="Class code" 
+            required 
+            autofocus 
+            class="border-2"
+            :disabled="props.requiresStudentAccount"
+          />
+          <Alert v-if="props.requiresStudentAccount" variant="destructive">
+            <AlertTitle>Account Type Required</AlertTitle>
+            <AlertDescription>
+              Only student accounts can join classes. Please log out and log in with a student account to continue.
+            </AlertDescription>
+          </Alert>
+          <Alert v-else-if="form.errors.class_code" variant="destructive">
             <AlertTitle>Error</AlertTitle>
             <AlertDescription>{{ form.errors.class_code }}</AlertDescription>
           </Alert>
         </form>
         <AlertDialogFooter>
           <AlertDialogCancel @click="closeDialog">Cancel</AlertDialogCancel>
-          <AlertDialogAction as-child>
+          <AlertDialogAction as-child v-if="!props.requiresStudentAccount">
             <Button @click="joinClass" :disabled="form.processing">
               {{ form.processing ? 'Joining...' : 'Join' }}
+            </Button>
+          </AlertDialogAction>
+          <AlertDialogAction as-child v-else>
+            <Button @click="() => window.location.href = route('logout')" variant="destructive">
+              Log Out
             </Button>
           </AlertDialogAction>
         </AlertDialogFooter>

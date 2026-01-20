@@ -13,8 +13,13 @@ class GoogleAuthController extends Controller
     /**
      * Redirect to Google OAuth
      */
-    public function redirect()
+    public function redirect(Request $request)
     {
+        // Store the code parameter in session if present (for class invite links)
+        if ($request->has('code')) {
+            $request->session()->put('invite_code', $request->query('code'));
+        }
+        
         return Socialite::driver('google')->redirect();
     }
 
@@ -61,10 +66,19 @@ class GoogleAuthController extends Controller
 
             $request->session()->regenerate();
 
+            // Check if there's a class code in session (from invite link)
+            $code = $request->session()->pull('invite_code');
+
             // Redirect based on account type
             $account_type = $user->account_type;
             if ($account_type === 'instructor') {
                 return redirect()->intended(route('instructor.classlist', absolute: false));
+            }
+            
+            // If there's a code parameter, redirect to classlist with code to auto-open join dialog
+            if ($code) {
+                return redirect()->route('student.classlist', ['code' => $code])
+                    ->with('success', 'Welcome back! You can now join the class.');
             }
             
             return redirect()->intended(route('student.dashboard', absolute: false));

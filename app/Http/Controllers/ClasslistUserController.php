@@ -11,6 +11,16 @@ class ClasslistUserController extends Controller
     // List classes the current student joined
     public function index(Request $request)
     {
+        // Handle unauthenticated users or authenticated non-students (for invite links with code parameter)
+        if (!Auth::check() || (Auth::check() && Auth::user()->account_type !== 'student')) {
+            return Inertia::render('Student/ClassList/Index', [
+                'joinedClasses' => [],
+                'archivedClasses' => [],
+                'joinCode' => $request->query('code'),
+                'requiresStudentAccount' => Auth::check() && Auth::user()->account_type !== 'student',
+            ]);
+        }
+
         $activeEnrollments = ClassListUser::with(['classlist.section'])
             ->where('user_id', Auth::id())
             ->where('status', 'active')
@@ -45,12 +55,18 @@ class ClasslistUserController extends Controller
                 ];
             }),
             'joinCode' => $request->query('code'),
+            'requiresStudentAccount' => false,
         ]);
     }
 
     // Join a class by code
     public function join(Request $request)
     {
+        // Require authentication to join
+        if (!Auth::check()) {
+            return redirect()->route('login')->with('error', 'Please log in to join the class.');
+        }
+
         $request->validate([
             'class_code' => 'required|string|exists:classlists,id',
         ]);

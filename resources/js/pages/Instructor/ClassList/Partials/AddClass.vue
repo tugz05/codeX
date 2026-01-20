@@ -2,7 +2,6 @@
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Sheet, SheetClose, SheetContent, SheetDescription, SheetFooter, SheetHeader, SheetTitle } from '@/components/ui/sheet';
 import { router } from '@inertiajs/vue3';
 import { ref, watch } from 'vue';
@@ -20,16 +19,10 @@ watch(
 // Form state
 const form = ref({
     name: '',
-    section_id: '',
+    section: '',
     academic_year: '',
     room: '',
 });
-
-// Example section options
-const sections = ref([
-    { id: 1, name: 'BSCS 1-A' },
-    { id: 2, name: 'BSCS 2-B' },
-]);
 
 const submitForm = () => {
     router.post('/instructor/classlist/add', form.value, {
@@ -49,7 +42,7 @@ const submitForm = () => {
                     onClick: () => console.log('Undo'),
                 },
             });
-            form.value = { name: '', section_id: '', academic_year: '', room: '' };
+            form.value = { name: '', section: '', academic_year: '', room: '' };
             emit('close');
         },
         onError: () => {
@@ -77,16 +70,7 @@ const submitForm = () => {
                 <!-- Section -->
                 <div class="flex flex-col gap-2">
                     <Label for="section" class="font-medium">Section</Label>
-                    <Select v-model="form.section_id">
-                        <SelectTrigger id="section">
-                            <SelectValue placeholder="Select section" />
-                        </SelectTrigger>
-                        <SelectContent>
-                            <SelectItem v-for="section in sections" :key="section.id" :value="section.id">
-                                {{ section.name }}
-                            </SelectItem>
-                        </SelectContent>
-                    </Select>
+                    <Input id="section" v-model="form.section" placeholder="e.g. BSCS 1-A, CS-101" />
                 </div>
 
                 <!-- Academic Year -->

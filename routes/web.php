@@ -23,6 +23,7 @@ use App\Http\Controllers\AssignmentController;
 use App\Http\Controllers\StudentAssignmentController;
 use App\Http\Controllers\StudentDashboardController;
 use App\Http\Controllers\CommentController;
+use App\Http\Middleware\AdminMiddleware;
 use App\Http\Middleware\InstructorMiddleware;
 use App\Http\Middleware\StudentMiddleware;
 use Illuminate\Support\Facades\Route;
@@ -254,6 +255,32 @@ Route::middleware([StudentMiddleware::class])->prefix('student')->name('student.
         Route::post('/attachments/{attachment}/versions', [\App\Http\Controllers\FileVersionController::class, 'store'])->name('versions.store');
         Route::post('/attachments/{attachment}/versions/restore', [\App\Http\Controllers\FileVersionController::class, 'restore'])->name('versions.restore');
     });
+
+});
+
+// Admin routes
+Route::middleware([AdminMiddleware::class])->prefix('admin')->name('admin.')->group(function () {
+    // Dashboard
+    Route::get('/dashboard', function () {
+        return Inertia::render('Admin/Dashboard', [
+            'stats' => [
+                'total_users' => \App\Models\User::count(),
+                'total_students' => \App\Models\User::where('account_type', 'student')->count(),
+                'total_instructors' => \App\Models\User::where('account_type', 'instructor')->count(),
+                'total_classes' => \App\Models\Classlist::count(),
+                'total_academic_years' => \App\Models\AcademicYear::count(),
+            ],
+        ]);
+    })->name('dashboard');
+
+    // User Management
+    Route::resource('users', \App\Http\Controllers\Admin\AdminUserController::class);
+
+    // Academic Year Management
+    Route::get('/academic-years', [\App\Http\Controllers\Admin\AdminAcademicYearController::class, 'index'])->name('academic-years.index');
+    Route::post('/academic-years', [\App\Http\Controllers\Admin\AdminAcademicYearController::class, 'store'])->name('academic-years.store');
+    Route::put('/academic-years/{academicYear}', [\App\Http\Controllers\Admin\AdminAcademicYearController::class, 'update'])->name('academic-years.update');
+    Route::delete('/academic-years/{academicYear}', [\App\Http\Controllers\Admin\AdminAcademicYearController::class, 'destroy'])->name('academic-years.destroy');
 
 });
 
