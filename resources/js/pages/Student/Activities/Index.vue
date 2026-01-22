@@ -1,10 +1,12 @@
 <script setup lang="ts">
-import { computed } from 'vue'
+import { computed, ref } from 'vue'
 import AuthLayoutStudent from '@/layouts/AuthLayoutStudent.vue'
 import { Head, Link, router } from '@inertiajs/vue3'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
-import { ArrowLeft, ClipboardList, GraduationCap, FileText, Award, Clock, CheckCircle2, Shield, BookOpen, Eye, NotebookPen } from 'lucide-vue-next'
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog'
+import ClassMessagesPanel from '@/components/ClassMessagesPanel.vue'
+import { ArrowLeft, ClipboardList, GraduationCap, FileText, Award, Clock, CheckCircle2, Shield, BookOpen, Eye, NotebookPen, MessageSquare } from 'lucide-vue-next'
 
 const props = defineProps<{
   classlist: { id: string; name: string; room: string; academic_year: string }
@@ -90,6 +92,8 @@ const props = defineProps<{
     }
   }>
 }>()
+
+const showMessages = ref(false)
 
 function formatDate(value?: string | null) {
   if (!value) return ''
@@ -230,17 +234,33 @@ function startExamination(examId: number) {
   <AuthLayoutStudent>
     <div class="flex h-full flex-1 flex-col gap-3 sm:gap-4 rounded-xl p-3 sm:p-4 md:p-6 max-w-[1600px] mx-auto w-full">
       <!-- Header -->
-      <div class="flex items-center gap-3">
+      <div class="flex flex-wrap items-center gap-3">
         <Link :href="route('student.classlist')" as="button">
           <Button variant="outline" size="sm"><ArrowLeft class="mr-1 h-4 w-4" /> Back</Button>
         </Link>
-        <div>
+        <div class="min-w-0">
           <h1 class="text-xl font-semibold">Class Content</h1>
           <p class="text-sm text-muted-foreground">
             {{ props.classlist.name }} • AY {{ props.classlist.academic_year }} • Room {{ props.classlist.room }}
           </p>
         </div>
+        <div class="ml-auto">
+          <Button variant="outline" size="sm" @click="showMessages = true">
+            <MessageSquare class="mr-1 h-4 w-4" /> Message Instructor
+          </Button>
+        </div>
       </div>
+
+      <Dialog v-model:open="showMessages">
+        <DialogContent class="!w-[96vw] !max-w-[1200px] !max-h-[90vh] overflow-hidden">
+          <DialogHeader>
+            <DialogTitle>Class Messages</DialogTitle>
+          </DialogHeader>
+          <div class="max-h-[75vh] overflow-y-auto">
+            <ClassMessagesPanel :classlist-id="props.classlist.id" mode="student" />
+          </div>
+        </DialogContent>
+      </Dialog>
 
       <!-- Unified List -->
       <div class="space-y-3">

@@ -158,6 +158,8 @@ const getNotificationIcon = (typeKey: string) => {
       return '⏰';
     case 'announcement':
       return '📢';
+    case 'message_received':
+      return '💬';
     default:
       return '🔔';
   }

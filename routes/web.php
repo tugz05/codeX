@@ -4,6 +4,7 @@ use App\Http\Controllers\ActivityController;
 use App\Http\Controllers\ActivitySubmissionController;
 use App\Http\Controllers\ClasslistController;
 use App\Http\Controllers\ClasslistUserController;
+use App\Http\Controllers\ClassMessageController;
 use App\Http\Controllers\CriteriaController;
 use App\Http\Controllers\InstructorDashboardController;
 use App\Http\Controllers\BatchSubmissionController;
@@ -66,6 +67,10 @@ Route::middleware([InstructorMiddleware::class])->prefix('instructor')->name('in
     Route::put('/attendance/{session}', [\App\Http\Controllers\AttendanceController::class, 'update'])->name('attendance.update');
     Route::delete('/attendance/{session}', [\App\Http\Controllers\AttendanceController::class, 'destroy'])->name('attendance.destroy');
     Route::get('/classlist/{classlist}/attendance/report', [\App\Http\Controllers\AttendanceController::class, 'report'])->name('attendance.report');
+
+    // Messages
+    Route::get('/classlist/{classlist}/messages', [ClassMessageController::class, 'index'])->name('messages.index');
+    Route::post('/classlist/{classlist}/messages/{student}', [ClassMessageController::class, 'storeForStudent'])->name('messages.store.student');
 
     // Calendar
     Route::get('/calendar', [\App\Http\Controllers\CalendarController::class, 'indexInstructor'])->name('calendar.index');
@@ -190,6 +195,10 @@ Route::middleware([StudentMiddleware::class])->prefix('student')->name('student.
 
     // Attendance routes
     Route::get('/classlist/{classlist}/attendance', [\App\Http\Controllers\StudentAttendanceController::class, 'index'])->name('attendance.index');
+
+    // Messages
+    Route::get('/classlist/{classlist}/messages', [ClassMessageController::class, 'index'])->name('messages.index');
+    Route::post('/classlist/{classlist}/messages', [ClassMessageController::class, 'store'])->name('messages.store');
 
     // Activity details
     Route::get('/classlist/{classlist}/activities/{activity}', [StudentActivityController::class, 'show'])

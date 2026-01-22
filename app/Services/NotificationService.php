@@ -127,6 +127,7 @@ class NotificationService
             'grade_released' => 'GradeReleasedNotification',
             'due_date_reminder' => 'DueDateReminderNotification',
             'announcement' => 'AnnouncementCreatedNotification',
+            'message_received' => 'MessageReceivedNotification',
             default => 'AssignmentCreatedNotification',
         };
     }

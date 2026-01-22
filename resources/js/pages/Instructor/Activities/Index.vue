@@ -17,6 +17,7 @@ import { ref, computed } from 'vue'
 import { toast } from 'vue-sonner'
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs'
 import AttendancePanel from '@/components/AttendancePanel.vue'
+import ClassMessagesPanel from '@/components/ClassMessagesPanel.vue'
 import { Badge } from '@/components/ui/badge'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
@@ -420,9 +421,10 @@ const toggleSort = (field: 'name' | 'email' | 'joined_at') => {
 
       <!-- Tabs -->
       <Tabs default-value="content" class="w-full">
-        <TabsList class="grid w-full grid-cols-3 border-2">
+        <TabsList class="grid w-full grid-cols-4 border-2">
           <TabsTrigger value="content">Content</TabsTrigger>
           <TabsTrigger value="attendance">Attendance</TabsTrigger>
+          <TabsTrigger value="messages">Messages</TabsTrigger>
           <TabsTrigger value="students">Students</TabsTrigger>
         </TabsList>
 
@@ -479,7 +481,7 @@ const toggleSort = (field: 'name' | 'email' | 'joined_at') => {
               <!-- Ellipsis menu -->
               <DropdownMenu>
                 <DropdownMenuTrigger as-child>
-                  <button 
+                  <button
                     class="text-gray-500 transition-colors hover:text-gray-900 dark:text-neutral-400 dark:hover:text-white"
                     @click.stop
                   >
@@ -559,7 +561,7 @@ const toggleSort = (field: 'name' | 'email' | 'joined_at') => {
               <!-- Ellipsis menu -->
               <DropdownMenu>
                 <DropdownMenuTrigger as-child>
-                  <button 
+                  <button
                     class="text-gray-500 transition-colors hover:text-gray-900 dark:text-neutral-400 dark:hover:text-white"
                     @click.stop
                   >
@@ -636,7 +638,7 @@ const toggleSort = (field: 'name' | 'email' | 'joined_at') => {
               <!-- Ellipsis menu -->
               <DropdownMenu>
                 <DropdownMenuTrigger as-child>
-                  <button 
+                  <button
                     class="text-gray-500 transition-colors hover:text-gray-900 dark:text-neutral-400 dark:hover:text-white"
                     @click.stop
                   >
@@ -712,7 +714,7 @@ const toggleSort = (field: 'name' | 'email' | 'joined_at') => {
               <!-- Ellipsis menu -->
               <DropdownMenu>
                 <DropdownMenuTrigger as-child>
-                  <button 
+                  <button
                     class="text-gray-500 transition-colors hover:text-gray-900 dark:text-neutral-400 dark:hover:text-white"
                     @click.stop
                   >
@@ -758,6 +760,11 @@ const toggleSort = (field: 'name' | 'email' | 'joined_at') => {
             :student-stats="props.attendance_student_stats"
             :show-back="false"
           />
+        </TabsContent>
+
+        <!-- Messages Tab -->
+        <TabsContent value="messages" class="mt-4">
+          <ClassMessagesPanel :classlist-id="props.classlist.id" mode="instructor" />
         </TabsContent>
 
         <!-- Students Tab -->

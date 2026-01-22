@@ -74,4 +74,9 @@ class Classlist extends Model
     {
         return $this->hasMany(AttendanceSession::class, 'classlist_id', 'id');
     }
+
+    public function messages()
+    {
+        return $this->hasMany(ClassMessage::class, 'classlist_id', 'id');
+    }
 }
