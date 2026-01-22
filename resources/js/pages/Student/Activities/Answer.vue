@@ -22,6 +22,9 @@ const props = defineProps<{
 // Runner config (env or prop)
 const RUNNER_WS_URL = (props.runnerUrl as string) || (import.meta.env.VITE_RUNNER_WS_URL || (window as any).VITE_RUNNER_WS_URL || 'ws://localhost:8088')
 const RUNNER_TOKEN  = (props.runnerToken as string) || (import.meta.env.VITE_RUNNER_SHARED_TOKEN || (window as any).VITE_RUNNER_SHARED_TOKEN || 'change-me-please')
+const RUNNER_MODE = import.meta.env.VITE_RUNNER_MODE || 'ws'
+const JUDGE0_URL = import.meta.env.VITE_JUDGE0_URL || 'https://ce.judge0.com'
+const useJudge0 = RUNNER_MODE === 'judge0'
 
 // Form state
 const form = useForm({
@@ -62,17 +65,79 @@ if (!form.code) form.code = templates[form.language] ?? ''
 // Terminal / run control
 const termRef = ref<InstanceType<typeof LiveTerminal> | null>(null)
 const runBusy = ref(false)
+const judge0Busy = ref(false)
 
-function runInteractive() {
+async function runInteractive() {
   if (!termRef.value) return
+  if (useJudge0) {
+    await runViaJudge0()
+    return
+  }
   runBusy.value = true
   termRef.value.writeLine('\x1b[36m[launching program...]\x1b[0m')
   termRef.value.run(form.language as any, form.code)
 }
+
+const languageMap: Record<string, number> = {
+  python: 71, // Python 3
+  cpp: 54,    // C++ (G++)
+  java: 62,   // Java
+}
+
+async function runViaJudge0() {
+  if (!termRef.value) return
+  if (judge0Busy.value) return
+
+  judge0Busy.value = true
+  runBusy.value = true
+  termRef.value.writeLine('\x1b[36m[using Judge0 free compiler...]\x1b[0m')
+  termRef.value.writeLine('\x1b[33m[stdin not supported in shared hosting mode]\x1b[0m')
+
+  try {
+    const response = await fetch(`${JUDGE0_URL}/submissions?base64_encoded=false&wait=true`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        source_code: form.code,
+        language_id: languageMap[form.language] ?? 71,
+        stdin: '',
+      }),
+    })
+
+    if (!response.ok) throw new Error('Compiler request failed.')
+    const data = await response.json()
+
+    if (data.compile_output) {
+      termRef.value.writeLine(`\x1b[31m[compile error]\x1b[0m\n${data.compile_output}`)
+    }
+    if (data.stderr) {
+      termRef.value.writeLine(`\x1b[31m[stderr]\x1b[0m\n${data.stderr}`)
+    }
+    if (data.stdout) {
+      termRef.value.writeLine(data.stdout)
+    }
+
+    const statusDesc = data.status?.description || 'finished'
+    termRef.value.writeLine(`\x1b[33m[${statusDesc}]\x1b[0m`)
+  } catch (error) {
+    const msg = error instanceof Error ? error.message : 'Compiler error'
+    termRef.value.writeLine(`\x1b[31m[error] ${msg}\x1b[0m`)
+  } finally {
+    runBusy.value = false
+    judge0Busy.value = false
+  }
+}
 function killRun() {
+  if (useJudge0) {
+    termRef.value?.writeLine('\x1b[33m[kill not supported in Judge0 mode]\x1b[0m')
+    return
+  }
   termRef.value?.kill()
 }
 function onExited(p: {code: number|null, time_ms?: number}) {
+  if (useJudge0) return
   runBusy.value = false
   const t = typeof p.time_ms === 'number' ? ` in ${p.time_ms} ms` : ''
   if (p.code === 0) toast.success('Program finished' + t)
