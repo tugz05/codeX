@@ -482,9 +482,9 @@ const toggleSort = (field: 'name' | 'email' | 'joined_at') => {
                     Scheduled
                   </span>
                 </div>
-                <p v-if="item.instruction" class="text-sm text-muted-foreground line-clamp-3">
-                  {{ item.instruction }}
-                </p>
+                <div v-if="item.instruction" class="text-sm text-muted-foreground line-clamp-3 prose prose-sm dark:prose-invert max-w-none">
+                  <div v-html="item.instruction"></div>
+                </div>
                 <div class="text-xs text-muted-foreground flex flex-wrap gap-3">
                   <span>Created: {{ formatDate(item.created_at) }}</span>
                   <span v-if="item.points !== null">• {{ item.points }} pts</span>
@@ -561,9 +561,9 @@ const toggleSort = (field: 'name' | 'email' | 'joined_at') => {
                     Draft
                   </span>
                 </div>
-                <p v-if="item.description" class="text-sm text-muted-foreground line-clamp-3">
-                  {{ item.description }}
-                </p>
+                <div v-if="item.description" class="text-sm text-muted-foreground line-clamp-3 prose prose-sm dark:prose-invert max-w-none">
+                  <div v-html="item.description"></div>
+                </div>
                 <div class="text-xs text-muted-foreground flex flex-wrap gap-3">
                   <span>Created: {{ formatDate(item.created_at) }}</span>
                   <span v-if="item.total_points">• {{ item.total_points }} points</span>
@@ -638,9 +638,9 @@ const toggleSort = (field: 'name' | 'email' | 'joined_at') => {
                     Proctored
                   </span>
                 </div>
-                <p v-if="item.description" class="text-sm text-muted-foreground line-clamp-3">
-                  {{ item.description }}
-                </p>
+                <div v-if="item.description" class="text-sm text-muted-foreground line-clamp-3 prose prose-sm dark:prose-invert max-w-none">
+                  <div v-html="item.description"></div>
+                </div>
                 <div class="text-xs text-muted-foreground flex flex-wrap gap-3">
                   <span>Created: {{ formatDate(item.created_at) }}</span>
                   <span v-if="item.total_points">• {{ item.total_points }} points</span>
@@ -715,9 +715,9 @@ const toggleSort = (field: 'name' | 'email' | 'joined_at') => {
                     Scheduled
                   </span>
                 </div>
-                <p v-if="item.description" class="text-sm text-muted-foreground line-clamp-3">
-                  {{ item.description }}
-                </p>
+                <div v-if="item.description" class="text-sm text-muted-foreground line-clamp-3 prose prose-sm dark:prose-invert max-w-none">
+                  <div v-html="item.description"></div>
+                </div>
                 <div class="text-xs text-muted-foreground flex flex-wrap gap-3">
                   <span>Created: {{ formatDate(item.created_at) }}</span>
                   <span class="capitalize">• {{ item.type }}</span>
