@@ -82,12 +82,15 @@ const props = defineProps<{
 const filteredClasses = computed(() => {
     if (!searchQuery.value.trim()) return props.classlist;
     const query = searchQuery.value.toLowerCase();
-    return props.classlist.filter((cls) => 
-        cls.name.toLowerCase().includes(query) ||
-        cls.room?.toLowerCase().includes(query) ||
-        cls.section?.name?.toLowerCase().includes(query) ||
-        cls.academic_year?.toLowerCase().includes(query)
-    );
+    return props.classlist.filter((cls) => {
+        const sectionValue = typeof cls.section === 'string' ? cls.section : cls.section?.name;
+        return (
+            cls.name.toLowerCase().includes(query) ||
+            cls.room?.toLowerCase().includes(query) ||
+            sectionValue?.toLowerCase().includes(query) ||
+            cls.academic_year?.toLowerCase().includes(query)
+        );
+    });
 });
 </script>
 
@@ -170,7 +173,7 @@ const filteredClasses = computed(() => {
                         :id="classItem.id"
                         :title="classItem.name"
                         :room="classItem.room"
-                        :section="classItem.section?.name || 'No section'"
+                        :section="(typeof classItem.section === 'string' ? classItem.section : classItem.section?.name) || 'No section'"
                         :students-count="classItem.students_count || 0"
                         :academic-year="classItem.academic_year"
                         :create-url="route('instructor.activities.index', classItem.id)"
