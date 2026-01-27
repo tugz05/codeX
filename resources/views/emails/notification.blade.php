@@ -3,6 +3,7 @@
   $actionUrl = $actionUrl ?? url('/');
   $actionText = $actionText ?? 'Open App';
   $preheader = $preheader ?? $title ?? $appName;
+  $body = $body ?? '';
 @endphp
 <!doctype html>
 <html lang="en">
@@ -38,7 +39,7 @@
         </div>
         <div class="content">
           <h1 class="title">{{ $title ?? $appName }}</h1>
-          <p class="message">{!! nl2br(e($message ?? '')) !!}</p>
+          <p class="message">{!! nl2br(e($body)) !!}</p>
           <a class="button" href="{{ $actionUrl }}">{{ $actionText }}</a>
         </div>
         <div class="footer">

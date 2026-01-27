@@ -29,7 +29,7 @@ class MessageReceivedNotification extends Notification implements ShouldQueue
             ->view('emails.notification', [
                 'appName' => config('app.name', 'CodeX'),
                 'title' => 'New Message',
-                'message' => $this->message,
+                'body' => $this->message,
                 'actionText' => 'View Message',
                 'actionUrl' => $this->actionUrl ?? url('/'),
                 'preheader' => $this->title,

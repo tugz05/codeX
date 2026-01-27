@@ -29,7 +29,7 @@ class AnnouncementCreatedNotification extends Notification implements ShouldQueu
             ->view('emails.notification', [
                 'appName' => config('app.name', 'CodeX'),
                 'title' => 'New Announcement',
-                'message' => $this->message,
+                'body' => $this->message,
                 'actionText' => 'View Announcement',
                 'actionUrl' => $this->actionUrl ?? url('/'),
                 'preheader' => $this->title,

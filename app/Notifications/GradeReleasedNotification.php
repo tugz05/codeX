@@ -29,7 +29,7 @@ class GradeReleasedNotification extends Notification implements ShouldQueue
             ->view('emails.notification', [
                 'appName' => config('app.name', 'CodeX'),
                 'title' => 'Grade Released',
-                'message' => $this->message,
+                'body' => $this->message,
                 'actionText' => 'View Grade',
                 'actionUrl' => $this->actionUrl ?? url('/'),
                 'preheader' => $this->title,

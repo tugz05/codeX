@@ -29,7 +29,7 @@ class QuizCreatedNotification extends Notification implements ShouldQueue
             ->view('emails.notification', [
                 'appName' => config('app.name', 'CodeX'),
                 'title' => 'New Quiz',
-                'message' => $this->message,
+                'body' => $this->message,
                 'actionText' => 'View Quiz',
                 'actionUrl' => $this->actionUrl ?? url('/'),
                 'preheader' => $this->title,
