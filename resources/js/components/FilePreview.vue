@@ -1,14 +1,21 @@
 <script setup lang="ts">
-import { ref, computed } from 'vue';
+import { computed } from 'vue';
 import { Dialog, DialogContent } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { X, Download, FileText, Image, Video, File } from 'lucide-vue-next';
+import VueOfficeDocx from '@vue-office/docx';
+import VueOfficeExcel from '@vue-office/excel';
+import VueOfficePptx from '@vue-office/pptx';
+import '@vue-office/docx/lib/index.css';
+import '@vue-office/excel/lib/index.css';
+import '@vue-office/pptx/lib/index.css';
 
 interface Props {
   file: {
     id: number;
     name: string;
     url: string;
+    download_url?: string | null;
     type: string | null;
     size: number | null;
   };
@@ -28,11 +35,20 @@ const isOpen = computed({
   set: (value) => emit('update:open', value),
 });
 
+const getExtension = (name: string) => {
+  const parts = name.toLowerCase().split('.');
+  return parts.length > 1 ? parts.pop() : '';
+};
+
 const fileType = computed(() => {
-  if (!props.file.type) return 'unknown';
-  if (props.file.type.startsWith('image/')) return 'image';
-  if (props.file.type === 'application/pdf') return 'pdf';
-  if (props.file.type.startsWith('video/')) return 'video';
+  const type = props.file.type || '';
+  const ext = getExtension(props.file.name || '');
+  if (type.startsWith('image/') || ['png', 'jpg', 'jpeg', 'gif', 'webp', 'bmp', 'svg'].includes(ext)) return 'image';
+  if (type === 'application/pdf' || ext === 'pdf') return 'pdf';
+  if (type.startsWith('video/') || ['mp4', 'webm', 'ogg', 'mov', 'm4v'].includes(ext)) return 'video';
+  if (ext === 'docx') return 'docx';
+  if (ext === 'xlsx') return 'xlsx';
+  if (ext === 'pptx') return 'pptx';
   return 'other';
 });
 
@@ -57,7 +73,8 @@ const formatFileSize = (bytes: number | null): string => {
 };
 
 const handleDownload = () => {
-  window.open(props.file.url, '_blank');
+  const url = props.file.download_url || props.file.url;
+  window.open(url, '_blank');
 };
 </script>
 
@@ -114,6 +131,17 @@ const handleDownload = () => {
             >
               Your browser does not support the video tag.
             </video>
+          </div>
+
+          <!-- Office Previews -->
+          <div v-else-if="fileType === 'docx'" class="bg-background rounded-lg border p-3">
+            <VueOfficeDocx :src="file.url" class="min-h-[70vh]" />
+          </div>
+          <div v-else-if="fileType === 'xlsx'" class="bg-background rounded-lg border p-3">
+            <VueOfficeExcel :src="file.url" class="min-h-[70vh]" />
+          </div>
+          <div v-else-if="fileType === 'pptx'" class="bg-background rounded-lg border p-3">
+            <VueOfficePptx :src="file.url" class="min-h-[70vh]" />
           </div>
 
           <!-- Other Files -->

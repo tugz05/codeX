@@ -4,7 +4,9 @@ import { Head, Link } from '@inertiajs/vue3'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
-import { ArrowLeft, Download, Calendar, User, ExternalLink, Video, BookOpen, FileText, Clock } from 'lucide-vue-next'
+import { ref } from 'vue'
+import { ArrowLeft, Download, Calendar, User, ExternalLink, Video, BookOpen, FileText, Clock, Eye } from 'lucide-vue-next'
+import FilePreview from '@/components/FilePreview.vue'
 import CommentSection from '@/components/CommentSection.vue'
 
 const props = defineProps<{
@@ -45,6 +47,18 @@ const props = defineProps<{
 
 const { classlist, material } = props
 
+type PreviewFile = {
+  id: number
+  name: string
+  url: string
+  download_url?: string | null
+  type: string | null
+  size: number | null
+}
+
+const previewFile = ref<PreviewFile | null>(null)
+const showPreview = ref(false)
+
 function isPreviewable(attachment: { name: string; type: string | null }): boolean {
   const name = attachment.name?.toLowerCase() || ''
   const type = attachment.type?.toLowerCase() || ''
@@ -53,17 +67,26 @@ function isPreviewable(attachment: { name: string; type: string | null }): boole
   if (type.startsWith('video/')) return true
   if (/\.(png|jpe?g|gif|webp|bmp|svg)$/.test(name)) return true
   if (/\.(mp4|webm|ogg|mov|m4v)$/.test(name)) return true
-  if (/\.(pptx?|docx?|xlsx?)$/.test(name)) return true
+  if (/\.(pptx|docx|xlsx)$/.test(name)) return true
   return false
 }
 
 function getPreviewUrl(attachmentId: number, attachmentName: string): string {
   const downloadUrl = route('student.materials.attachments.download', [classlist.id, material.id, attachmentId])
-  const name = attachmentName?.toLowerCase() || ''
-  if (/\.(pptx?|docx?|xlsx?)$/.test(name)) {
-    return `https://view.officeapps.live.com/op/view.aspx?src=${encodeURIComponent(downloadUrl)}`
-  }
   return `${downloadUrl}?preview=1`
+}
+
+function openPreview(attachment: { id: number; name: string; type: string | null; size: number | null }) {
+  const downloadUrl = route('student.materials.attachments.download', [classlist.id, material.id, attachment.id])
+  previewFile.value = {
+    id: attachment.id,
+    name: attachment.name,
+    type: attachment.type,
+    size: attachment.size,
+    url: getPreviewUrl(attachment.id, attachment.name),
+    download_url: downloadUrl,
+  }
+  showPreview.value = true
 }
 
 function formatFileSize(bytes: number | null): string {
@@ -225,16 +248,14 @@ function formatTime(value?: string | null): string {
                           variant="outline"
                           size="sm"
                           class="h-8 px-2 sm:px-3"
-                          as-child
+                          @click="openPreview(attachment)"
                         >
-                          <a :href="getPreviewUrl(attachment.id, attachment.name)" target="_blank" rel="noopener noreferrer">
-                            <Eye class="h-4 w-4 sm:mr-1" />
-                            <span class="hidden sm:inline">Preview</span>
-                          </a>
+                          <Eye class="h-4 w-4 mr-1" />
+                          <span class="hidden sm:inline">Preview</span>
                         </Button>
                         <Button variant="ghost" size="sm" class="h-8 px-2 sm:px-3" as-child>
-                          <a :href="route('student.materials.attachments.download', [classlist.id, material.id, attachment.id])">
-                            <Download class="h-4 w-4 sm:mr-1" />
+                          <a class="inline-flex items-center" :href="route('student.materials.attachments.download', [classlist.id, material.id, attachment.id])">
+                            <Download class="h-4 w-4 mr-1" />
                             <span class="hidden sm:inline">Download</span>
                           </a>
                         </Button>
@@ -305,5 +326,7 @@ function formatTime(value?: string | null): string {
         </div>
       </main>
     </div>
+
+    <FilePreview v-if="previewFile" :file="previewFile" v-model:open="showPreview" />
   </AppLayout>
 </template>
