@@ -381,9 +381,9 @@ function startExamination(examId: number) {
                     Completed
                   </span>
                 </div>
-                <p v-if="item.description" class="text-sm text-muted-foreground line-clamp-2 mb-2">
-                  {{ item.description }}
-                </p>
+                <div v-if="item.description" class="text-sm text-muted-foreground line-clamp-2 mb-2 prose prose-sm dark:prose-invert max-w-none">
+                  <div v-html="item.description"></div>
+                </div>
                 <div class="flex flex-wrap items-center gap-4 text-xs text-muted-foreground">
                   <span>{{ item.total_points }} points</span>
                   <span v-if="item.time_limit">{{ item.time_limit }} minutes</span>
@@ -440,9 +440,9 @@ function startExamination(examId: number) {
                     Completed
                   </span>
                 </div>
-                <p v-if="item.description" class="text-sm text-muted-foreground line-clamp-2 mb-2">
-                  {{ item.description }}
-                </p>
+                <div v-if="item.description" class="text-sm text-muted-foreground line-clamp-2 mb-2 prose prose-sm dark:prose-invert max-w-none">
+                  <div v-html="item.description"></div>
+                </div>
                 <div class="flex flex-wrap items-center gap-4 text-xs text-muted-foreground">
                   <span>{{ item.total_points }} points</span>
                   <span v-if="item.time_limit">{{ item.time_limit }} minutes</span>
@@ -509,9 +509,9 @@ function startExamination(examId: number) {
                     Scheduled
                   </span>
                 </div>
-                <p v-if="item.description" class="text-sm text-muted-foreground line-clamp-2 mb-2">
-                  {{ item.description }}
-                </p>
+                <div v-if="item.description" class="text-sm text-muted-foreground line-clamp-2 mb-2 prose prose-sm dark:prose-invert max-w-none">
+                  <div v-html="item.description"></div>
+                </div>
                 <div class="flex flex-wrap items-center gap-4 text-xs text-muted-foreground">
                   <span class="capitalize">{{ item.type }}</span>
                   <span v-if="item.attachments_count">{{ item.attachments_count }} attachment{{ item.attachments_count !== 1 ? 's' : '' }}</span>
