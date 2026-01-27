@@ -142,26 +142,24 @@ function formatDate(date: string | null): string {
                     <span class="text-muted-foreground">({{ formatFileSize(attachment.size) }})</span>
                   </div>
                   <div class="flex items-center gap-2">
-                    <Link
+                    <Button
                       v-if="isPreviewable(attachment)"
-                      :href="getPreviewUrl(material.id, attachment.id, attachment.name)"
-                      target="_blank"
-                      as="button"
+                      variant="outline"
+                      size="sm"
+                      class="h-8 px-2 sm:px-3"
+                      as-child
                     >
-                      <Button variant="outline" size="sm">
-                        <Eye class="h-4 w-4 mr-1" />
-                        Preview
-                      </Button>
-                    </Link>
-                    <Link
-                      :href="route('student.materials.attachments.download', [classlist.id, material.id, attachment.id])"
-                      as="button"
-                    >
-                      <Button variant="ghost" size="sm">
-                        <Download class="h-4 w-4 mr-1" />
-                        Download
-                      </Button>
-                    </Link>
+                      <a :href="getPreviewUrl(material.id, attachment.id, attachment.name)" target="_blank" rel="noopener noreferrer">
+                        <Eye class="h-4 w-4 sm:mr-1" />
+                        <span class="hidden sm:inline">Preview</span>
+                      </a>
+                    </Button>
+                    <Button variant="ghost" size="sm" class="h-8 px-2 sm:px-3" as-child>
+                      <a :href="route('student.materials.attachments.download', [classlist.id, material.id, attachment.id])">
+                        <Download class="h-4 w-4 sm:mr-1" />
+                        <span class="hidden sm:inline">Download</span>
+                      </a>
+                    </Button>
                   </div>
                 </div>
               </div>
