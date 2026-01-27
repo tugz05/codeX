@@ -35,6 +35,17 @@ const props = defineProps<{
   }>
 }>()
 
+function isPreviewable(attachment: { name: string; type: string | null }): boolean {
+  const name = attachment.name?.toLowerCase() || ''
+  const type = attachment.type?.toLowerCase() || ''
+  if (type.includes('pdf') || name.endsWith('.pdf')) return true
+  if (type.startsWith('image/')) return true
+  if (type.startsWith('video/')) return true
+  if (/\.(png|jpe?g|gif|webp|bmp|svg)$/.test(name)) return true
+  if (/\.(mp4|webm|ogg|mov|m4v)$/.test(name)) return true
+  return false
+}
+
 function formatFileSize(bytes: number | null): string {
   if (!bytes) return 'Unknown size'
   if (bytes < 1024) return bytes + ' B'
@@ -108,16 +119,39 @@ function formatDate(date: string | null): string {
             <div class="space-y-2">
               <p class="text-sm font-medium">Attachments:</p>
               <div class="flex flex-wrap gap-2">
-                <a
+                <div
                   v-for="attachment in material.attachments"
                   :key="attachment.id"
-                  :href="route('student.materials.attachments.download', [classlist.id, material.id, attachment.id])"
-                  class="flex items-center gap-2 px-3 py-2 bg-muted rounded-md hover:bg-muted/80 transition-colors text-sm"
+                  class="flex flex-wrap items-center justify-between gap-3 rounded-md bg-muted px-3 py-2 text-sm"
                 >
-                  <Download class="h-4 w-4" />
-                  <span>{{ attachment.name }}</span>
-                  <span class="text-muted-foreground">({{ formatFileSize(attachment.size) }})</span>
-                </a>
+                  <div class="flex min-w-0 items-center gap-2">
+                    <Download class="h-4 w-4 shrink-0" />
+                    <span class="truncate">{{ attachment.name }}</span>
+                    <span class="text-muted-foreground">({{ formatFileSize(attachment.size) }})</span>
+                  </div>
+                  <div class="flex items-center gap-2">
+                    <Link
+                      v-if="isPreviewable(attachment)"
+                      :href="route('student.materials.attachments.download', [classlist.id, material.id, attachment.id]) + '?preview=1'"
+                      target="_blank"
+                      as="button"
+                    >
+                      <Button variant="outline" size="sm">
+                        <Eye class="h-4 w-4 mr-1" />
+                        Preview
+                      </Button>
+                    </Link>
+                    <Link
+                      :href="route('student.materials.attachments.download', [classlist.id, material.id, attachment.id])"
+                      as="button"
+                    >
+                      <Button variant="ghost" size="sm">
+                        <Download class="h-4 w-4 mr-1" />
+                        Download
+                      </Button>
+                    </Link>
+                  </div>
+                </div>
               </div>
             </div>
           </CardContent>
