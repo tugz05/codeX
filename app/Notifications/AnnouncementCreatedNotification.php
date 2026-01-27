@@ -26,8 +26,13 @@ class AnnouncementCreatedNotification extends Notification implements ShouldQueu
     {
         return (new MailMessage)
             ->subject('New Announcement: ' . $this->title)
-            ->line($this->message)
-            ->action('View Announcement', $this->actionUrl ?? url('/'))
-            ->line('Thank you for using our application!');
+            ->view('emails.notification', [
+                'appName' => config('app.name', 'CodeX'),
+                'title' => 'New Announcement',
+                'message' => $this->message,
+                'actionText' => 'View Announcement',
+                'actionUrl' => $this->actionUrl ?? url('/'),
+                'preheader' => $this->title,
+            ]);
     }
 }

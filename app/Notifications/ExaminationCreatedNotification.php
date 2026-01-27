@@ -26,8 +26,13 @@ class ExaminationCreatedNotification extends Notification implements ShouldQueue
     {
         return (new MailMessage)
             ->subject('New Examination: ' . $this->title)
-            ->line($this->message)
-            ->action('View Examination', $this->actionUrl ?? url('/'))
-            ->line('Thank you for using our application!');
+            ->view('emails.notification', [
+                'appName' => config('app.name', 'CodeX'),
+                'title' => 'New Examination',
+                'message' => $this->message,
+                'actionText' => 'View Examination',
+                'actionUrl' => $this->actionUrl ?? url('/'),
+                'preheader' => $this->title,
+            ]);
     }
 }

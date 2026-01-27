@@ -26,8 +26,13 @@ class MaterialCreatedNotification extends Notification implements ShouldQueue
     {
         return (new MailMessage)
             ->subject('New Material: ' . $this->title)
-            ->line($this->message)
-            ->action('View Material', $this->actionUrl ?? url('/'))
-            ->line('Thank you for using our application!');
+            ->view('emails.notification', [
+                'appName' => config('app.name', 'CodeX'),
+                'title' => 'New Material',
+                'message' => $this->message,
+                'actionText' => 'View Material',
+                'actionUrl' => $this->actionUrl ?? url('/'),
+                'preheader' => $this->title,
+            ]);
     }
 }

@@ -34,8 +34,13 @@ class AssignmentCreatedNotification extends Notification implements ShouldQueue
     {
         return (new MailMessage)
             ->subject('New Assignment: ' . $this->title)
-            ->line($this->message)
-            ->action('View Assignment', $this->actionUrl ?? url('/'))
-            ->line('Thank you for using our application!');
+            ->view('emails.notification', [
+                'appName' => config('app.name', 'CodeX'),
+                'title' => 'New Assignment',
+                'message' => $this->message,
+                'actionText' => 'View Assignment',
+                'actionUrl' => $this->actionUrl ?? url('/'),
+                'preheader' => $this->title,
+            ]);
     }
 }

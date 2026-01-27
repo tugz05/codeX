@@ -26,8 +26,13 @@ class ActivityCreatedNotification extends Notification implements ShouldQueue
     {
         return (new MailMessage)
             ->subject('New Activity: ' . $this->title)
-            ->line($this->message)
-            ->action('View Activity', $this->actionUrl ?? url('/'))
-            ->line('Thank you for using our application!');
+            ->view('emails.notification', [
+                'appName' => config('app.name', 'CodeX'),
+                'title' => 'New Activity',
+                'message' => $this->message,
+                'actionText' => 'View Activity',
+                'actionUrl' => $this->actionUrl ?? url('/'),
+                'preheader' => $this->title,
+            ]);
     }
 }
