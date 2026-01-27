@@ -120,6 +120,18 @@ class ClasslistController extends Controller
     }
 
     /**
+     * Remove a student from the class.
+     */
+    public function removeStudent(Classlist $classlist, \App\Models\User $student)
+    {
+        abort_unless($classlist->user_id === auth()->id(), 403);
+
+        $classlist->students()->detach($student->id);
+
+        return back()->with('success', 'Student removed from class.');
+    }
+
+    /**
      * Show the form for editing the specified resource.
      */
     public function edit(Classlist $classlist)

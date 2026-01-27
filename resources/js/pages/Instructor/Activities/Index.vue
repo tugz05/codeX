@@ -12,7 +12,7 @@ import {
 import ActivityRowCard from './Partials/ActivityRowCard.vue'
 import CreateActivitySheet from './Partials/CreateActivitySheet.vue'
 import EditActivitySheet from './Partials/EditActivitySheet.vue'
-import { Plus, ArrowLeft, FileText, ClipboardList, GraduationCap, Trash2, Edit, Eye, ChevronDown, Users, Mail, Calendar, Search, ArrowUpDown, Download, BookOpen, EllipsisVertical, NotebookPen } from 'lucide-vue-next'
+import { Plus, ArrowLeft, FileText, ClipboardList, GraduationCap, Trash2, Edit, Eye, ChevronDown, Users, Mail, Calendar, Search, ArrowUpDown, Download, BookOpen, EllipsisVertical, NotebookPen, UserMinus } from 'lucide-vue-next'
 import { ref, computed } from 'vue'
 import { toast } from 'vue-sonner'
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs'
@@ -238,6 +238,19 @@ const doDelete = () => {
       deletingId.value = null
     },
     onError: () => toast.error(`Failed to delete ${deletingType.value}.`)
+  })
+}
+
+const removingStudentId = ref<number | null>(null)
+const removeStudent = (studentId: number) => {
+  if (!props.classlist?.id) return
+  const confirmed = window.confirm('Remove this student from the class?')
+  if (!confirmed) return
+  removingStudentId.value = studentId
+  router.delete(route('instructor.classlist.students.remove', [props.classlist.id, studentId]), {
+    onFinish: () => {
+      removingStudentId.value = null
+    },
   })
 }
 
@@ -878,6 +891,7 @@ const toggleSort = (field: 'name' | 'email' | 'joined_at') => {
                           <th class="text-left py-3 px-4 font-semibold text-sm">Email</th>
                           <th class="text-left py-3 px-4 font-semibold text-sm">Join Date</th>
                           <th class="text-left py-3 px-4 font-semibold text-sm">Status</th>
+                          <th class="text-right py-3 px-4 font-semibold text-sm">Actions</th>
                         </tr>
                       </thead>
                       <tbody>
@@ -907,6 +921,18 @@ const toggleSort = (field: 'name' | 'email' | 'joined_at') => {
                               Active
                             </Badge>
                           </td>
+                          <td class="py-4 px-4 text-right">
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              class="border-2 text-rose-600 hover:text-rose-700"
+                              :disabled="removingStudentId === student.id"
+                              @click="removeStudent(student.id)"
+                            >
+                              <UserMinus class="mr-1 h-4 w-4" />
+                              Remove
+                            </Button>
+                          </td>
                         </tr>
                       </tbody>
                     </table>
@@ -931,6 +957,15 @@ const toggleSort = (field: 'name' | 'email' | 'joined_at') => {
                             </Badge>
                           </div>
                         </div>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          class="border-2 text-rose-600 hover:text-rose-700"
+                          :disabled="removingStudentId === student.id"
+                          @click="removeStudent(student.id)"
+                        >
+                          <UserMinus class="h-4 w-4" />
+                        </Button>
                       </div>
                       <div class="space-y-2 pl-11">
                         <div class="flex items-center gap-2 text-sm text-muted-foreground">

@@ -50,6 +50,7 @@ Route::middleware([InstructorMiddleware::class])->prefix('instructor')->name('in
     Route::post('/classlist/{classlist}/restore', [ClasslistController::class, 'restore'])->name('classlist.restore');
     Route::delete('/classlist/{classlist}', [ClasslistController::class, 'destroy'])->name('classlist.destroy');
     Route::get('/classlist/{classlist}/students', [ClasslistController::class, 'students'])->name('classlist.students');
+    Route::delete('/classlist/{classlist}/students/{student}', [ClasslistController::class, 'removeStudent'])->name('classlist.students.remove');
     
     // Archived Classes
     Route::get('/archived-classes', [\App\Http\Controllers\Instructor\ArchivedClassesController::class, 'index'])->name('archived-classes.index');
