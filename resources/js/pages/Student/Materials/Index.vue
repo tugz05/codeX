@@ -43,7 +43,17 @@ function isPreviewable(attachment: { name: string; type: string | null }): boole
   if (type.startsWith('video/')) return true
   if (/\.(png|jpe?g|gif|webp|bmp|svg)$/.test(name)) return true
   if (/\.(mp4|webm|ogg|mov|m4v)$/.test(name)) return true
+  if (/\.(pptx?|docx?|xlsx?)$/.test(name)) return true
   return false
+}
+
+function getPreviewUrl(materialId: number, attachmentId: number, attachmentName: string): string {
+  const downloadUrl = route('student.materials.attachments.download', [props.classlist.id, materialId, attachmentId])
+  const name = attachmentName?.toLowerCase() || ''
+  if (/\.(pptx?|docx?|xlsx?)$/.test(name)) {
+    return `https://view.officeapps.live.com/op/view.aspx?src=${encodeURIComponent(downloadUrl)}`
+  }
+  return `${downloadUrl}?preview=1`
 }
 
 function formatFileSize(bytes: number | null): string {
@@ -132,7 +142,7 @@ function formatDate(date: string | null): string {
                   <div class="flex items-center gap-2">
                     <Link
                       v-if="isPreviewable(attachment)"
-                      :href="route('student.materials.attachments.download', [classlist.id, material.id, attachment.id]) + '?preview=1'"
+                      :href="getPreviewUrl(material.id, attachment.id, attachment.name)"
                       target="_blank"
                       as="button"
                     >
