@@ -8,7 +8,6 @@ import VueOfficeExcel from '@vue-office/excel';
 import VueOfficePptx from '@vue-office/pptx';
 import '@vue-office/docx/lib/index.css';
 import '@vue-office/excel/lib/index.css';
-import '@vue-office/pptx/lib/index.css';
 
 interface Props {
   file: {
