@@ -226,11 +226,9 @@ function formatTime(value?: string | null): string {
                     <span>Attachments ({{ material.attachments.length }})</span>
                   </div>
                   <div class="space-y-2">
-                    <a
+                    <div
                       v-for="attachment in material.attachments"
                       :key="attachment.id"
-                      :href="route('student.materials.attachments.download', [classlist.id, material.id, attachment.id])"
-                      rel="noopener noreferrer"
                       class="flex items-center justify-between rounded-lg border bg-card p-4 transition-all hover:bg-accent/50 hover:shadow-sm"
                     >
                       <div class="flex items-center gap-3 min-w-0 flex-1">
@@ -254,13 +252,16 @@ function formatTime(value?: string | null): string {
                           <span class="hidden sm:inline">Preview</span>
                         </Button>
                         <Button variant="ghost" size="sm" class="h-8 px-2 sm:px-3" as-child>
-                          <a class="inline-flex items-center" :href="route('student.materials.attachments.download', [classlist.id, material.id, attachment.id])">
+                          <a
+                            class="inline-flex items-center"
+                            :href="route('student.materials.attachments.download', [classlist.id, material.id, attachment.id])"
+                          >
                             <Download class="h-4 w-4 mr-1" />
                             <span class="hidden sm:inline">Download</span>
                           </a>
                         </Button>
                       </div>
-                    </a>
+                    </div>
                   </div>
                 </div>
               </div>

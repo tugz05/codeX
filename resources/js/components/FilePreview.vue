@@ -79,10 +79,10 @@ const handleDownload = () => {
 
 <template>
   <Dialog v-model:open="isOpen">
-    <DialogContent class="max-w-4xl max-h-[90vh] p-0">
-      <div class="relative flex flex-col h-full">
+    <DialogContent class="w-[96vw] max-w-6xl h-[92vh] sm:h-[90vh] p-0">
+      <div class="relative flex h-full flex-col">
         <!-- Header -->
-        <div class="flex items-center justify-between p-4 border-b">
+        <div class="flex flex-col gap-3 border-b p-3 sm:flex-row sm:items-center sm:justify-between sm:p-4">
           <div class="flex items-center gap-3 flex-1 min-w-0">
             <component :is="fileIcon" class="h-5 w-5 text-muted-foreground shrink-0" />
             <div class="flex-1 min-w-0">
@@ -91,24 +91,24 @@ const handleDownload = () => {
             </div>
           </div>
           <div class="flex items-center gap-2">
-            <Button variant="outline" size="sm" @click="handleDownload">
+            <Button variant="outline" size="sm" class="h-8 px-3" @click="handleDownload">
               <Download class="h-4 w-4 mr-2" />
-              Download
+              <span class="hidden sm:inline">Download</span>
             </Button>
-            <Button variant="ghost" size="icon" @click="isOpen = false">
+            <Button variant="ghost" size="icon" class="h-8 w-8" @click="isOpen = false">
               <X class="h-4 w-4" />
             </Button>
           </div>
         </div>
 
         <!-- Preview Content -->
-        <div class="flex-1 overflow-auto p-4 bg-muted/30">
+        <div class="flex-1 overflow-auto bg-muted/30 p-3 sm:p-4">
           <!-- Image Preview -->
           <div v-if="fileType === 'image'" class="flex items-center justify-center h-full">
             <img
               :src="file.url"
               :alt="file.name"
-              class="max-w-full max-h-[70vh] object-contain rounded-lg shadow-lg"
+              class="max-w-full max-h-[75vh] object-contain rounded-lg shadow-lg"
             />
           </div>
 
@@ -116,7 +116,7 @@ const handleDownload = () => {
           <div v-else-if="fileType === 'pdf'" class="flex items-center justify-center h-full">
             <iframe
               :src="file.url"
-              class="w-full h-[70vh] border rounded-lg"
+              class="w-full h-[78vh] border rounded-lg bg-background"
               frameborder="0"
             ></iframe>
           </div>
@@ -126,7 +126,7 @@ const handleDownload = () => {
             <video
               :src="file.url"
               controls
-              class="max-w-full max-h-[70vh] rounded-lg shadow-lg"
+              class="max-w-full max-h-[75vh] rounded-lg shadow-lg"
             >
               Your browser does not support the video tag.
             </video>
@@ -134,13 +134,13 @@ const handleDownload = () => {
 
           <!-- Office Previews -->
           <div v-else-if="fileType === 'docx'" class="bg-background rounded-lg border p-3">
-            <VueOfficeDocx :src="file.url" class="min-h-[70vh]" />
+            <VueOfficeDocx :src="file.url" class="min-h-[78vh]" />
           </div>
           <div v-else-if="fileType === 'xlsx'" class="bg-background rounded-lg border p-3">
-            <VueOfficeExcel :src="file.url" class="min-h-[70vh]" />
+            <VueOfficeExcel :src="file.url" class="min-h-[78vh]" />
           </div>
           <div v-else-if="fileType === 'pptx'" class="bg-background rounded-lg border p-3">
-            <VueOfficePptx :src="file.url" class="min-h-[70vh]" />
+            <VueOfficePptx :src="file.url" class="min-h-[78vh]" />
           </div>
 
           <!-- Other Files -->
