@@ -35,6 +35,8 @@ const props = defineProps<{
   }>
 }>()
 
+const { classlist, materials } = props
+
 function isPreviewable(attachment: { name: string; type: string | null }): boolean {
   const name = attachment.name?.toLowerCase() || ''
   const type = attachment.type?.toLowerCase() || ''
