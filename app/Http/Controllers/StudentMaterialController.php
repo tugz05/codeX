@@ -3,11 +3,14 @@
 namespace App\Http\Controllers;
 
 use App\Models\Material;
+use App\Models\MaterialAttachment;
 use App\Models\Classlist;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Carbon;
+use Illuminate\Support\Str;
 use Inertia\Inertia;
 
 class StudentMaterialController extends Controller
@@ -176,5 +179,64 @@ class StudentMaterialController extends Controller
                     ]),
             ],
         ]);
+    }
+
+    /**
+     * Download an attachment for a material.
+     */
+    public function downloadAttachment(Classlist $classlist, Material $material, MaterialAttachment $attachment, Request $request)
+    {
+        // Ensure current user is enrolled in this class
+        $enrolled = DB::table('classlist_user')
+            ->where('classlist_id', $classlist->id)
+            ->where('user_id', Auth::id())
+            ->where('status', 'active')
+            ->exists();
+
+        abort_unless($enrolled, 403);
+        abort_unless($material->classlist_id === $classlist->id, 404);
+        abort_unless($attachment->material_id === $material->id, 404);
+
+        // Check if material is accessible
+        if ($material->accessible_date) {
+            /** @var \Carbon\Carbon $accessibleDate */
+            $accessibleDate = $material->accessible_date;
+            $accessibleDateStr = $accessibleDate->format('Y-m-d');
+            $accessibleDateTime = Carbon::parse($accessibleDateStr);
+
+            if ($material->accessible_time) {
+                $timeParts = explode(':', $material->accessible_time);
+                $accessibleDateTime->setTime((int)($timeParts[0] ?? 0), (int)($timeParts[1] ?? 0));
+            }
+
+            abort_unless(Carbon::now() >= $accessibleDateTime, 403, 'This material is not yet accessible.');
+        }
+
+        $path = $attachment->url;
+        $relativePath = null;
+        $parsed = parse_url($path);
+        $pathPart = $parsed['path'] ?? $path;
+
+        if (Str::contains($pathPart, '/storage/')) {
+            $relativePath = ltrim(Str::after($pathPart, '/storage/'), '/');
+        }
+
+        if (!$relativePath) {
+            return redirect()->away($attachment->url);
+        }
+
+        abort_unless(Storage::disk('public')->exists($relativePath), 404);
+
+        if ($request->boolean('preview')) {
+            $absolutePath = Storage::disk('public')->path($relativePath);
+            $mimeType = Storage::disk('public')->mimeType($relativePath) ?? 'application/octet-stream';
+
+            return response()->file($absolutePath, [
+                'Content-Type' => $mimeType,
+                'Content-Disposition' => 'inline; filename="' . addslashes($attachment->name) . '"',
+            ]);
+        }
+
+        return Storage::disk('public')->download($relativePath, $attachment->name);
     }
 }

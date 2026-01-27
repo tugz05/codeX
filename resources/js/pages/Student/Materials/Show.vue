@@ -43,6 +43,17 @@ const props = defineProps<{
   }
 }>()
 
+function isPreviewable(attachment: { name: string; type: string | null }): boolean {
+  const name = attachment.name?.toLowerCase() || ''
+  const type = attachment.type?.toLowerCase() || ''
+  if (type.includes('pdf') || name.endsWith('.pdf')) return true
+  if (type.startsWith('image/')) return true
+  if (type.startsWith('video/')) return true
+  if (/\.(png|jpe?g|gif|webp|bmp|svg)$/.test(name)) return true
+  if (/\.(mp4|webm|ogg|mov|m4v)$/.test(name)) return true
+  return false
+}
+
 function formatFileSize(bytes: number | null): string {
   if (!bytes) return 'Unknown size'
   if (bytes < 1024) return bytes + ' B'
@@ -183,8 +194,7 @@ function formatTime(value?: string | null): string {
                     <a
                       v-for="attachment in material.attachments"
                       :key="attachment.id"
-                      :href="attachment.url"
-                      target="_blank"
+                      :href="route('student.materials.attachments.download', [classlist.id, material.id, attachment.id])"
                       rel="noopener noreferrer"
                       class="flex items-center justify-between rounded-lg border bg-card p-4 transition-all hover:bg-accent/50 hover:shadow-sm"
                     >
@@ -197,9 +207,22 @@ function formatTime(value?: string | null): string {
                           <p class="text-xs text-muted-foreground">{{ formatFileSize(attachment.size) }}</p>
                         </div>
                       </div>
-                      <Button variant="ghost" size="sm" class="shrink-0">
-                        <Download class="h-4 w-4" />
-                      </Button>
+                      <div class="flex items-center gap-2 shrink-0">
+                        <Link
+                          v-if="isPreviewable(attachment)"
+                          :href="route('student.materials.attachments.download', [classlist.id, material.id, attachment.id]) + '?preview=1'"
+                          target="_blank"
+                          as="button"
+                        >
+                          <Button variant="outline" size="sm">
+                            <Eye class="h-4 w-4 mr-1" />
+                            Preview
+                          </Button>
+                        </Link>
+                        <Button variant="ghost" size="sm">
+                          <Download class="h-4 w-4" />
+                        </Button>
+                      </div>
                     </a>
                   </div>
                 </div>

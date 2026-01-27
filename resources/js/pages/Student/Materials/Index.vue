@@ -111,8 +111,7 @@ function formatDate(date: string | null): string {
                 <a
                   v-for="attachment in material.attachments"
                   :key="attachment.id"
-                  :href="attachment.url"
-                  target="_blank"
+                  :href="route('student.materials.attachments.download', [classlist.id, material.id, attachment.id])"
                   class="flex items-center gap-2 px-3 py-2 bg-muted rounded-md hover:bg-muted/80 transition-colors text-sm"
                 >
                   <Download class="h-4 w-4" />

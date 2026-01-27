@@ -263,6 +263,7 @@ Route::middleware([StudentMiddleware::class])->prefix('student')->name('student.
     // Material routes
     Route::get('/classlist/{classlist}/materials', [StudentMaterialController::class, 'index'])->name('materials.index');
     Route::get('/classlist/{classlist}/materials/{material}', [StudentMaterialController::class, 'show'])->name('materials.show');
+    Route::get('/classlist/{classlist}/materials/{material}/attachments/{attachment}/download', [StudentMaterialController::class, 'downloadAttachment'])->name('materials.attachments.download');
 
     // Attempt activity logging (anti-cheating)
     Route::post('/attempt-activities/log', [\App\Http\Controllers\AttemptActivityController::class, 'log'])->name('attempt-activities.log');
