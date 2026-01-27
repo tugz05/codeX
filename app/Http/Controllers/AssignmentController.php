@@ -22,6 +22,10 @@ class AssignmentController extends Controller
                 'room' => $classlist->room,
                 'academic_year' => $classlist->academic_year,
             ],
+            'other_classlists' => Classlist::where('user_id', Auth::id())
+                ->where('id', '!=', $classlist->id)
+                ->orderBy('name')
+                ->get(['id', 'name', 'room', 'section', 'academic_year']),
         ]);
     }
 
@@ -37,62 +41,77 @@ class AssignmentController extends Controller
             'accessible_date' => ['nullable', 'date'],
             'accessible_time' => ['nullable', 'date_format:H:i'],
             'attachments.*' => ['file', 'max:20480'],
+            'also_classlist_ids' => ['array'],
+            'also_classlist_ids.*' => ['integer', 'exists:classlists,id'],
         ]);
 
-        $assignment = Assignment::create([
-            'classlist_id' => $classlist->id,
-            'title' => $data['title'],
-            'posted_by' => $auth,
-            'instruction' => $data['instruction'] ?? null,
-            'points' => $data['points'] ?? null,
-            'due_date' => $data['due_date'] ?? null,
-            'due_time' => $data['due_time'] ?? null,
-            'accessible_date' => $data['accessible_date'] ?? null,
-            'accessible_time' => $data['accessible_time'] ?? null,
-        ]);
+        $targetIds = collect($data['also_classlist_ids'] ?? [])
+            ->push($classlist->id)
+            ->unique()
+            ->values();
 
-        // Handle file attachments
+        $targetClasslists = Classlist::where('user_id', $auth)
+            ->whereIn('id', $targetIds)
+            ->get();
+
+        abort_unless($targetClasslists->count() === $targetIds->count(), 403);
+
+        $attachmentPayloads = [];
         if ($request->hasFile('attachments')) {
             foreach ($request->file('attachments') as $file) {
                 $path = $file->store('assignment-attachments', 'public');
-                AssignmentAttachment::create([
-                    'assignment_id' => $assignment->id,
+                $attachmentPayloads[] = [
                     'name' => $file->getClientOriginalName(),
                     'type' => $file->getMimeType(),
                     'url' => Storage::url($path),
                     'size' => $file->getSize(),
-                ]);
+                ];
             }
         }
 
-        // Send notifications to enrolled students
         $notificationService = app(NotificationService::class);
-        $students = $classlist->students()->where('status', 'active')->get();
-        
-        foreach ($students as $student) {
-            $actionUrl = route('student.assignments.show', [$classlist->id, $assignment->id], false);
-            $message = "A new assignment '{$assignment->title}' has been posted in {$classlist->name}.";
-            
-            // In-app notification
-            $notificationService->sendNotification(
-                'assignment_created',
-                [$student],
-                $assignment->title,
-                $message,
-                Assignment::class,
-                $assignment->id,
-                $classlist->id,
-                $actionUrl
-            );
-            
-            // Email notification
-            $notificationService->sendEmailNotification(
-                'assignment_created',
-                $student,
-                $assignment->title,
-                $message,
-                url($actionUrl)
-            );
+
+        foreach ($targetClasslists as $targetClasslist) {
+            $assignment = Assignment::create([
+                'classlist_id' => $targetClasslist->id,
+                'title' => $data['title'],
+                'posted_by' => $auth,
+                'instruction' => $data['instruction'] ?? null,
+                'points' => $data['points'] ?? null,
+                'due_date' => $data['due_date'] ?? null,
+                'due_time' => $data['due_time'] ?? null,
+                'accessible_date' => $data['accessible_date'] ?? null,
+                'accessible_time' => $data['accessible_time'] ?? null,
+            ]);
+
+            foreach ($attachmentPayloads as $payload) {
+                AssignmentAttachment::create($payload + ['assignment_id' => $assignment->id]);
+            }
+
+            $students = $targetClasslist->students()->where('status', 'active')->get();
+            foreach ($students as $student) {
+                $actionUrl = route('student.assignments.show', [$targetClasslist->id, $assignment->id], false);
+                $message = "A new assignment '{$assignment->title}' has been posted in {$targetClasslist->name}.";
+
+                $notificationService->sendNotification(
+                    'assignment_created',
+                    [$student],
+                    $assignment->title,
+                    $message,
+                    Assignment::class,
+                    $assignment->id,
+                    $targetClasslist->id,
+                    $actionUrl
+                );
+
+                $notificationService->sendEmailNotification(
+                    'assignment_created',
+                    $student,
+                    $assignment->title,
+                    $message,
+                    url($actionUrl)
+                );
+            }
         }
 
         return redirect()->route('instructor.activities.index', $classlist)

@@ -5,8 +5,9 @@ import { toast } from 'vue-sonner'
 
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
-import { Textarea } from '@/components/ui/textarea'
+import RichTextEditor from '@/components/RichTextEditor.vue'
 import { Label } from '@/components/ui/label'
+import { Checkbox } from '@/components/ui/checkbox'
 import { Separator } from '@/components/ui/separator'
 import { Switch } from '@/components/ui/switch'
 import {
@@ -21,6 +22,7 @@ import Dropzone from '@/components/Dropzone.vue' // <-- drag & drop component fr
 const props = defineProps<{
   open: boolean
   classlist: { id: string; name: string; room: string; academic_year: string }
+  other_classlists: Array<{ id: number; name: string; room: string; section: string | null; academic_year: string | null }>
 }>()
 
 const emit = defineEmits<{ (e:'update:open', v:boolean):void }>()
@@ -59,6 +61,7 @@ const form = useForm({
   accessible_time: '' as string | null,
   attachments: [] as File[],
   criteria_id: null as number | null, // <--- NEW
+  also_classlist_ids: [] as number[],
 })
 
 const accessToggle = ref<boolean>(false)
@@ -126,11 +129,33 @@ function submit() {
             <!-- Instruction -->
             <div class="space-y-2">
               <Label for="instruction">Instruction</Label>
-              <Textarea id="instruction" v-model="form.instruction" rows="6" placeholder="Write clear instructions, rubric details, or links…" />
+              <RichTextEditor v-model="form.instruction" placeholder="Write clear instructions, rubric details, or links…" min-height="180px" />
               <Alert v-if="form.errors.instruction" variant="destructive" class="mt-2">
                 <AlertTitle>Error</AlertTitle>
                 <AlertDescription>{{ form.errors.instruction }}</AlertDescription>
               </Alert>
+            </div>
+
+            <div v-if="props.other_classlists.length > 0" class="space-y-3">
+              <Label class="text-sm font-medium">Also post to other classes</Label>
+              <div class="grid gap-2 rounded-lg border bg-muted/30 p-3">
+                <label
+                  v-for="cls in props.other_classlists"
+                  :key="cls.id"
+                  class="flex items-center gap-3 rounded-md px-2 py-1.5 hover:bg-muted/60"
+                >
+                  <Checkbox
+                    :checked="form.also_classlist_ids.includes(cls.id)"
+                    @update:checked="(val) => {
+                      if (val) form.also_classlist_ids.push(cls.id)
+                      else form.also_classlist_ids = form.also_classlist_ids.filter(id => id !== cls.id)
+                    }"
+                  />
+                  <span class="text-sm">
+                    {{ cls.name }} <span class="text-muted-foreground">• Room {{ cls.room }}</span>
+                  </span>
+                </label>
+              </div>
             </div>
 
             <!-- Points / Due -->

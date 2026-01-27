@@ -6,8 +6,9 @@ import { toast } from 'vue-sonner'
 
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
-import { Textarea } from '@/components/ui/textarea'
+import RichTextEditor from '@/components/RichTextEditor.vue'
 import { Label } from '@/components/ui/label'
+import { Checkbox } from '@/components/ui/checkbox'
 import { Separator } from '@/components/ui/separator'
 import { Switch } from '@/components/ui/switch'
 import { Alert, AlertDescription } from '@/components/ui/alert'
@@ -19,6 +20,7 @@ import { ref, computed } from 'vue'
 
 const props = defineProps<{
   classlist: { id: string; name: string; room: string; academic_year: string }
+  other_classlists: Array<{ id: number; name: string; room: string; section: string | null; academic_year: string | null }>
 }>()
 
 type Question = {
@@ -49,6 +51,7 @@ const form = useForm({
   start_date: '' as string | null,
   end_date: '' as string | null,
   tests: [] as Test[],
+  also_classlist_ids: [] as number[],
 })
 
 const tests = ref<Test[]>([
@@ -411,7 +414,29 @@ const totalQuestions = computed(() => {
 
               <div class="space-y-2">
                 <Label for="description">Description</Label>
-                <Textarea id="description" v-model="form.description" rows="3" placeholder="Examination instructions..." />
+                <RichTextEditor v-model="form.description" placeholder="Examination instructions..." min-height="160px" />
+              </div>
+
+              <div v-if="props.other_classlists.length > 0" class="space-y-3">
+                <Label class="text-sm font-medium">Also post to other classes</Label>
+                <div class="grid gap-2 rounded-lg border bg-muted/30 p-3">
+                  <label
+                    v-for="cls in props.other_classlists"
+                    :key="cls.id"
+                    class="flex items-center gap-3 rounded-md px-2 py-1.5 hover:bg-muted/60"
+                  >
+                    <Checkbox
+                      :checked="form.also_classlist_ids.includes(cls.id)"
+                      @update:checked="(val) => {
+                        if (val) form.also_classlist_ids.push(cls.id)
+                        else form.also_classlist_ids = form.also_classlist_ids.filter(id => id !== cls.id)
+                      }"
+                    />
+                    <span class="text-sm">
+                      {{ cls.name }} <span class="text-muted-foreground">• Room {{ cls.room }}</span>
+                    </span>
+                  </label>
+                </div>
               </div>
 
               <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
@@ -523,11 +548,10 @@ const totalQuestions = computed(() => {
                         </div>
                         <div class="space-y-1">
                           <Label class="text-xs text-muted-foreground">Description (optional)</Label>
-                          <Textarea
+                          <RichTextEditor
                             v-model="test.description"
                             placeholder="Test description"
-                            rows="1"
-                            class="text-sm"
+                            min-height="100px"
                           />
                         </div>
                       </div>

@@ -130,9 +130,7 @@ function formatTime(value?: string | null): string {
               <!-- Description -->
               <div class="px-5 py-5 md:px-6 md:py-6">
                 <div v-if="material.description" class="prose prose-sm dark:prose-invert max-w-none">
-                  <p class="leading-7 whitespace-pre-line text-foreground">
-                    {{ material.description }}
-                  </p>
+                    <div class="leading-7 whitespace-pre-line text-foreground" v-html="material.description"></div>
                 </div>
                 <div v-else class="text-sm text-muted-foreground">No description provided for this material.</div>
 

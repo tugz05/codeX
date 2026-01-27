@@ -113,8 +113,8 @@ function getTestTypeLabel(type: string | null): string {
               <CardTitle>Examination Information</CardTitle>
             </CardHeader>
             <CardContent class="space-y-4">
-              <div v-if="props.examination.description" class="text-sm text-muted-foreground">
-                {{ props.examination.description }}
+              <div v-if="props.examination.description" class="prose prose-sm dark:prose-invert max-w-none">
+                <div v-html="props.examination.description"></div>
               </div>
 
               <div class="grid grid-cols-2 gap-4 text-sm">

@@ -6,7 +6,7 @@ import { toast } from 'vue-sonner'
 
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
-import { Textarea } from '@/components/ui/textarea'
+import RichTextEditor from '@/components/RichTextEditor.vue'
 import { Label } from '@/components/ui/label'
 import { Separator } from '@/components/ui/separator'
 import { Switch } from '@/components/ui/switch'
@@ -442,7 +442,7 @@ const totalQuestions = computed(() => {
 
               <div class="space-y-2">
                 <Label for="description">Description</Label>
-                <Textarea id="description" v-model="form.description" rows="3" placeholder="Examination instructions..." />
+                <RichTextEditor v-model="form.description" placeholder="Examination instructions..." min-height="160px" />
               </div>
 
               <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
@@ -554,11 +554,10 @@ const totalQuestions = computed(() => {
                         </div>
                         <div class="space-y-1">
                           <Label class="text-xs text-muted-foreground">Description (optional)</Label>
-                          <Textarea
+                          <RichTextEditor
                             v-model="test.description"
                             placeholder="Test description"
-                            rows="1"
-                            class="text-sm"
+                            min-height="100px"
                           />
                         </div>
                       </div>

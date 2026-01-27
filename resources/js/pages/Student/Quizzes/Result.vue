@@ -347,9 +347,9 @@ const warningViolations = computed(() => {
                       {{ formatDate(activity.occurred_at) }}
                     </span>
                   </div>
-                  <p v-if="activity.description" class="text-xs text-muted-foreground mt-1">
-                    {{ activity.description }}
-                  </p>
+                  <div v-if="activity.description" class="prose prose-xs dark:prose-invert max-w-none mt-1">
+                    <div v-html="activity.description"></div>
+                  </div>
                   <div v-if="activity.metadata && Object.keys(activity.metadata).length > 0" class="mt-2 text-xs text-muted-foreground">
                     <span v-if="activity.metadata.count">Count: {{ activity.metadata.count }}</span>
                     <span v-if="activity.metadata.key" class="ml-2">Key: {{ activity.metadata.key }}</span>
@@ -378,7 +378,7 @@ const warningViolations = computed(() => {
                     </Badge>
                   </div>
                   <CardDescription v-if="test.description" class="mt-2">
-                    {{ test.description }}
+                    <span v-html="test.description"></span>
                   </CardDescription>
                 </div>
                 <div class="text-right">

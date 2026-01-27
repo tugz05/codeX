@@ -22,6 +22,10 @@ class ExaminationController extends Controller
                 'room' => $classlist->room,
                 'academic_year' => $classlist->academic_year,
             ],
+            'other_classlists' => Classlist::where('user_id', Auth::id())
+                ->where('id', '!=', $classlist->id)
+                ->orderBy('name')
+                ->get(['id', 'name', 'room', 'section', 'academic_year']),
         ]);
     }
 
@@ -49,94 +53,106 @@ class ExaminationController extends Controller
             'tests.*.questions.*.options' => ['nullable', 'array'],
             'tests.*.questions.*.correct_answer' => ['required'],
             'tests.*.questions.*.explanation' => ['nullable', 'string'],
+            'also_classlist_ids' => ['array'],
+            'also_classlist_ids.*' => ['integer', 'exists:classlists,id'],
         ]);
 
         DB::beginTransaction();
         try {
-            $examination = Examination::create([
-                'classlist_id' => $classlist->id,
-                'created_by' => Auth::id(),
-                'title' => $data['title'],
-                'description' => $data['description'] ?? null,
-                'total_points' => 0, // Will be calculated
-                'time_limit' => $data['time_limit'] ?? null,
-                'attempts_allowed' => $data['attempts_allowed'],
-                'shuffle_questions' => $data['shuffle_questions'] ?? false,
-                'show_correct_answers' => $data['show_correct_answers'] ?? false,
-                'is_published' => $data['is_published'] ?? false,
-                'require_proctoring' => $data['require_proctoring'] ?? false,
-                'start_date' => $data['start_date'] ? date('Y-m-d H:i:s', strtotime($data['start_date'])) : null,
-                'end_date' => $data['end_date'] ? date('Y-m-d H:i:s', strtotime($data['end_date'])) : null,
-            ]);
+            $auth = Auth::id();
+            $targetIds = collect($data['also_classlist_ids'] ?? [])
+                ->push($classlist->id)
+                ->unique()
+                ->values();
 
-            $totalPoints = 0;
+            $targetClasslists = Classlist::where('user_id', $auth)
+                ->whereIn('id', $targetIds)
+                ->get();
 
-            foreach ($data['tests'] as $testIndex => $testData) {
-                $testPoints = collect($testData['questions'])->sum('points');
-                $totalPoints += $testPoints;
+            abort_unless($targetClasslists->count() === $targetIds->count(), 403);
 
-                $test = \App\Models\Test::create([
-                    'testable_id' => $examination->id,
-                    'testable_type' => Examination::class,
-                    'title' => $testData['title'],
-                    'type' => $testData['type'] ?? null,
-                    'description' => $testData['description'] ?? null,
-                    'order' => $testIndex + 1,
-                    'total_points' => $testPoints,
+            foreach ($targetClasslists as $targetClasslist) {
+                $examination = Examination::create([
+                    'classlist_id' => $targetClasslist->id,
+                    'created_by' => $auth,
+                    'title' => $data['title'],
+                    'description' => $data['description'] ?? null,
+                    'total_points' => 0,
+                    'time_limit' => $data['time_limit'] ?? null,
+                    'attempts_allowed' => $data['attempts_allowed'],
+                    'shuffle_questions' => $data['shuffle_questions'] ?? false,
+                    'show_correct_answers' => $data['show_correct_answers'] ?? false,
+                    'is_published' => $data['is_published'] ?? false,
+                    'require_proctoring' => $data['require_proctoring'] ?? false,
+                    'start_date' => $data['start_date'] ? date('Y-m-d H:i:s', strtotime($data['start_date'])) : null,
+                    'end_date' => $data['end_date'] ? date('Y-m-d H:i:s', strtotime($data['end_date'])) : null,
                 ]);
 
-                foreach ($testData['questions'] as $qIndex => $questionData) {
-                    $correctAnswer = is_array($questionData['correct_answer']) 
-                        ? $questionData['correct_answer'] 
-                        : [$questionData['correct_answer']];
+                $totalPoints = 0;
 
-                    Question::create([
-                        'test_id' => $test->id,
-                        'questionable_id' => $examination->id,
-                        'questionable_type' => Examination::class,
-                        'question_text' => $questionData['question_text'],
-                        'type' => $questionData['type'],
-                        'points' => $questionData['points'],
-                        'order' => $qIndex + 1,
-                        'options' => $questionData['options'] ?? null,
-                        'correct_answer' => $correctAnswer,
-                        'explanation' => $questionData['explanation'] ?? null,
-                        'is_active' => true,
+                foreach ($data['tests'] as $testIndex => $testData) {
+                    $testPoints = collect($testData['questions'])->sum('points');
+                    $totalPoints += $testPoints;
+
+                    $test = \App\Models\Test::create([
+                        'testable_id' => $examination->id,
+                        'testable_type' => Examination::class,
+                        'title' => $testData['title'],
+                        'type' => $testData['type'] ?? null,
+                        'description' => $testData['description'] ?? null,
+                        'order' => $testIndex + 1,
+                        'total_points' => $testPoints,
                     ]);
+
+                    foreach ($testData['questions'] as $qIndex => $questionData) {
+                        $correctAnswer = is_array($questionData['correct_answer'])
+                            ? $questionData['correct_answer']
+                            : [$questionData['correct_answer']];
+
+                        Question::create([
+                            'test_id' => $test->id,
+                            'questionable_id' => $examination->id,
+                            'questionable_type' => Examination::class,
+                            'question_text' => $questionData['question_text'],
+                            'type' => $questionData['type'],
+                            'points' => $questionData['points'],
+                            'order' => $qIndex + 1,
+                            'options' => $questionData['options'] ?? null,
+                            'correct_answer' => $correctAnswer,
+                            'explanation' => $questionData['explanation'] ?? null,
+                            'is_active' => true,
+                        ]);
+                    }
                 }
-            }
 
-            $examination->update(['total_points' => $totalPoints]);
+                $examination->update(['total_points' => $totalPoints]);
 
-            // Send notifications to enrolled students if published
-            if ($examination->is_published) {
-                $notificationService = app(NotificationService::class);
-                $students = $classlist->students()->where('status', 'active')->get();
-                
-                foreach ($students as $student) {
-                    $actionUrl = route('student.examinations.show', [$classlist->id, $examination->id], false);
-                    $message = "A new examination '{$examination->title}' is now available in {$classlist->name}.";
-                    
-                    // In-app notification
-                    $notificationService->sendNotification(
-                        'examination_created',
-                        [$student],
-                        $examination->title,
-                        $message,
-                        Examination::class,
-                        $examination->id,
-                        $classlist->id,
-                        $actionUrl
-                    );
-                    
-                    // Email notification
-                    $notificationService->sendEmailNotification(
-                        'examination_created',
-                        $student,
-                        $examination->title,
-                        $message,
-                        url($actionUrl)
-                    );
+                if ($examination->is_published) {
+                    $notificationService = app(NotificationService::class);
+                    $students = $targetClasslist->students()->where('status', 'active')->get();
+                    foreach ($students as $student) {
+                        $actionUrl = route('student.examinations.show', [$targetClasslist->id, $examination->id], false);
+                        $message = "A new examination '{$examination->title}' is now available in {$targetClasslist->name}.";
+
+                        $notificationService->sendNotification(
+                            'examination_created',
+                            [$student],
+                            $examination->title,
+                            $message,
+                            Examination::class,
+                            $examination->id,
+                            $targetClasslist->id,
+                            $actionUrl
+                        );
+
+                        $notificationService->sendEmailNotification(
+                            'examination_created',
+                            $student,
+                            $examination->title,
+                            $message,
+                            url($actionUrl)
+                        );
+                    }
                 }
             }
 

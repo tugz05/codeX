@@ -5,7 +5,7 @@ import { useForm } from '@inertiajs/vue3'
 import { toast } from 'vue-sonner'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
-import { Textarea } from '@/components/ui/textarea'
+import RichTextEditor from '@/components/RichTextEditor.vue'
 import { Label } from '@/components/ui/label'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Alert, AlertDescription } from '@/components/ui/alert'
@@ -174,7 +174,7 @@ function submit() {
 
             <div class="space-y-2">
               <Label for="description">Description</Label>
-              <Textarea id="description" v-model="form.description" rows="4" />
+              <RichTextEditor v-model="form.description" placeholder="Add a description for this material..." min-height="160px" />
             </div>
 
             <div class="space-y-2">

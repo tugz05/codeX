@@ -128,6 +128,7 @@ const props = defineProps<{
     excused: number
     attendance_percentage: number
   }>
+  other_classlists?: Array<{ id: number; name: string; room: string; section: string | null; academic_year: string | null }>
 }>()
 
 const showCreate = ref(false)
@@ -991,6 +992,7 @@ const toggleSort = (field: 'name' | 'email' | 'joined_at') => {
     <CreateActivitySheet
       v-model:open="showCreate"
       :classlist="props.classlist"
+      :other-classlists="props.other_classlists || []"
     />
 
     <!-- Edit Sheet -->

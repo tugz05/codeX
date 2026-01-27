@@ -25,6 +25,10 @@ class MaterialController extends Controller
                 'room' => $classlist->room,
                 'academic_year' => $classlist->academic_year,
             ],
+            'other_classlists' => Classlist::where('user_id', Auth::id())
+                ->where('id', '!=', $classlist->id)
+                ->orderBy('name')
+                ->get(['id', 'name', 'room', 'section', 'academic_year']),
         ]);
     }
 
@@ -45,6 +49,8 @@ class MaterialController extends Controller
             'accessible_date' => ['nullable', 'date'],
             'accessible_time' => ['nullable', 'date_format:H:i'],
             'attachments.*' => ['file', 'max:51200'], // 50MB each
+            'also_classlist_ids' => ['array'],
+            'also_classlist_ids.*' => ['integer', 'exists:classlists,id'],
         ], [
             'url.required_if' => 'URL is required when type is Link.',
         ]);
@@ -54,60 +60,74 @@ class MaterialController extends Controller
             return back()->withErrors(['video_url' => 'Either video URL or embed code is required for video type materials.']);
         }
 
-        $material = Material::create([
-            'classlist_id' => $classlist->id,
-            'title' => $data['title'],
-            'posted_by' => $auth,
-            'description' => $data['description'] ?? null,
-            'type' => $data['type'] ?? 'resource',
-            'url' => $data['url'] ?? null,
-            'video_url' => $data['video_url'] ?? null,
-            'embed_code' => $data['embed_code'] ?? null,
-            'accessible_date' => $data['accessible_date'] ?? null,
-            'accessible_time' => $data['accessible_time'] ?? null,
-        ]);
+        $targetIds = collect($data['also_classlist_ids'] ?? [])
+            ->push($classlist->id)
+            ->unique()
+            ->values();
 
-        // Attach files
+        $targetClasslists = Classlist::where('user_id', $auth)
+            ->whereIn('id', $targetIds)
+            ->get();
+
+        abort_unless($targetClasslists->count() === $targetIds->count(), 403);
+
+        $attachmentPayloads = [];
         if ($request->hasFile('attachments')) {
             foreach ($request->file('attachments') as $file) {
                 $path = $file->store('material_attachments', 'public');
-                $material->attachments()->create([
+                $attachmentPayloads[] = [
                     'name' => $file->getClientOriginalName(),
                     'type' => $file->getClientMimeType(),
                     'url' => Storage::disk('public')->url($path),
                     'size' => $file->getSize(),
-                ]);
+                ];
             }
         }
 
-        // Send notifications to enrolled students
         $notificationService = app(NotificationService::class);
-        $students = $classlist->students()->where('status', 'active')->get();
-        
-        foreach ($students as $student) {
-            $actionUrl = route('student.materials.show', [$classlist->id, $material->id], false);
-            $message = "New material '{$material->title}' has been posted in {$classlist->name}.";
-            
-            // In-app notification
-            $notificationService->sendNotification(
-                'material_created',
-                [$student],
-                $material->title,
-                $message,
-                Material::class,
-                $material->id,
-                $classlist->id,
-                $actionUrl
-            );
-            
-            // Email notification
-            $notificationService->sendEmailNotification(
-                'material_created',
-                $student,
-                $material->title,
-                $message,
-                url($actionUrl)
-            );
+
+        foreach ($targetClasslists as $targetClasslist) {
+            $material = Material::create([
+                'classlist_id' => $targetClasslist->id,
+                'title' => $data['title'],
+                'posted_by' => $auth,
+                'description' => $data['description'] ?? null,
+                'type' => $data['type'] ?? 'resource',
+                'url' => $data['url'] ?? null,
+                'video_url' => $data['video_url'] ?? null,
+                'embed_code' => $data['embed_code'] ?? null,
+                'accessible_date' => $data['accessible_date'] ?? null,
+                'accessible_time' => $data['accessible_time'] ?? null,
+            ]);
+
+            foreach ($attachmentPayloads as $payload) {
+                $material->attachments()->create($payload);
+            }
+
+            $students = $targetClasslist->students()->where('status', 'active')->get();
+            foreach ($students as $student) {
+                $actionUrl = route('student.materials.show', [$targetClasslist->id, $material->id], false);
+                $message = "New material '{$material->title}' has been posted in {$targetClasslist->name}.";
+
+                $notificationService->sendNotification(
+                    'material_created',
+                    [$student],
+                    $material->title,
+                    $message,
+                    Material::class,
+                    $material->id,
+                    $targetClasslist->id,
+                    $actionUrl
+                );
+
+                $notificationService->sendEmailNotification(
+                    'material_created',
+                    $student,
+                    $material->title,
+                    $message,
+                    url($actionUrl)
+                );
+            }
         }
 
         return redirect()->route('instructor.activities.index', $classlist)

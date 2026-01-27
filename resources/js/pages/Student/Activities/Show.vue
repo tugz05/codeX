@@ -104,9 +104,7 @@ const isStartDisabled = computed(() => ['Missing', 'Submitted', 'Graded'].includ
 
                             <div class="px-5 py-5 md:px-6 md:py-6">
                                 <div v-if="props.activity.instruction" class="prose prose-sm dark:prose-invert max-w-none">
-                                    <p class="leading-7 whitespace-pre-line">
-                                        {{ props.activity.instruction }}
-                                    </p>
+                                    <div class="leading-7 whitespace-pre-line" v-html="props.activity.instruction"></div>
                                 </div>
                                 <div v-else class="text-sm text-muted-foreground">No instructions provided for this activity.</div>
 

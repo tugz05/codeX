@@ -6,8 +6,9 @@ import { toast } from 'vue-sonner'
 
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
-import { Textarea } from '@/components/ui/textarea'
+import RichTextEditor from '@/components/RichTextEditor.vue'
 import { Label } from '@/components/ui/label'
+import { Checkbox } from '@/components/ui/checkbox'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Alert, AlertDescription } from '@/components/ui/alert'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
@@ -16,6 +17,7 @@ import { ref, computed, watch } from 'vue'
 
 const props = defineProps<{
   classlist: { id: string; name: string; room: string; academic_year: string }
+  other_classlists: Array<{ id: number; name: string; room: string; section: string | null; academic_year: string | null }>
 }>()
 
 const form = useForm({
@@ -28,6 +30,7 @@ const form = useForm({
   accessible_date: null as string | null,
   accessible_time: null as string | null,
   attachments: [] as File[],
+  also_classlist_ids: [] as number[],
 })
 
 const accessToggle = ref(false)
@@ -217,13 +220,11 @@ function submit() {
                     <!-- Description -->
                     <div class="space-y-2">
                       <Label for="description" class="text-sm font-medium">Description</Label>
-                      <Textarea
-                        id="description"
-                        v-model="form.description"
-                        rows="4"
-                        placeholder="Add a description for this material..."
-                        class="border-2 transition-all duration-300 focus:scale-[1.01] resize-none"
-                      />
+                    <RichTextEditor
+                      v-model="form.description"
+                      placeholder="Add a description for this material..."
+                      min-height="160px"
+                    />
                       <Alert v-if="form.errors.description" variant="destructive" class="mt-2">
                         <AlertDescription>{{ form.errors.description }}</AlertDescription>
                       </Alert>
@@ -251,6 +252,29 @@ function submit() {
                         <span v-else-if="form.type === 'video'">Add video URL or embed code</span>
                         <span v-else-if="form.type === 'other'">Upload any type of file</span>
                       </p>
+                    </div>
+
+                    <!-- Multi-class posting -->
+                    <div v-if="props.other_classlists.length > 0" class="space-y-3">
+                      <Label class="text-sm font-medium">Also post to other classes</Label>
+                      <div class="grid gap-2 rounded-lg border bg-muted/30 p-3">
+                        <label
+                          v-for="cls in props.other_classlists"
+                          :key="cls.id"
+                          class="flex items-center gap-3 rounded-md px-2 py-1.5 hover:bg-muted/60"
+                        >
+                          <Checkbox
+                            :checked="form.also_classlist_ids.includes(cls.id)"
+                            @update:checked="(val) => {
+                              if (val) form.also_classlist_ids.push(cls.id)
+                              else form.also_classlist_ids = form.also_classlist_ids.filter(id => id !== cls.id)
+                            }"
+                          />
+                          <span class="text-sm">
+                            {{ cls.name }} <span class="text-muted-foreground">• Room {{ cls.room }}</span>
+                          </span>
+                        </label>
+                      </div>
                     </div>
                   </div>
                 </div>

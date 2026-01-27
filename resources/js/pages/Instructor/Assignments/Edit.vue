@@ -6,7 +6,7 @@ import { toast } from 'vue-sonner'
 
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
-import { Textarea } from '@/components/ui/textarea'
+import RichTextEditor from '@/components/RichTextEditor.vue'
 import { Label } from '@/components/ui/label'
 import { Alert, AlertDescription } from '@/components/ui/alert'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
@@ -179,12 +179,10 @@ function submit() {
                     <!-- Instruction -->
                     <div class="space-y-2">
                       <Label for="instruction" class="text-sm font-medium">Instructions</Label>
-                      <Textarea
-                        id="instruction"
+                      <RichTextEditor
                         v-model="form.instruction"
-                        rows="6"
                         placeholder="Provide detailed instructions for this assignment..."
-                        class="border-2 transition-all duration-300 focus:scale-[1.01] resize-none"
+                        min-height="180px"
                       />
                       <Alert v-if="form.errors.instruction" variant="destructive" class="mt-2">
                         <AlertDescription>{{ form.errors.instruction }}</AlertDescription>

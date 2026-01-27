@@ -254,9 +254,7 @@ function submit() {
               <!-- Instruction -->
               <div class="px-5 py-5 md:px-6 md:py-6">
                 <div v-if="assignment.instruction" class="prose prose-sm dark:prose-invert max-w-none">
-                  <p class="leading-7 whitespace-pre-line text-foreground">
-                    {{ assignment.instruction }}
-                  </p>
+                  <div class="leading-7 whitespace-pre-line text-foreground" v-html="assignment.instruction"></div>
                 </div>
                 <div v-else class="text-sm text-muted-foreground">No instructions provided for this assignment.</div>
 

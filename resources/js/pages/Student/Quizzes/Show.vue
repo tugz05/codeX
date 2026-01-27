@@ -64,8 +64,8 @@ const submittedAttempts = computed(() => {
       </div>
 
       <div class="rounded-xl border border-gray-200 bg-white p-6 shadow-sm dark:border-neutral-800 dark:bg-neutral-900">
-        <div v-if="props.quiz.description" class="mb-4 text-sm text-muted-foreground">
-          {{ props.quiz.description }}
+        <div v-if="props.quiz.description" class="prose prose-sm dark:prose-invert max-w-none mb-4">
+          <div v-html="props.quiz.description"></div>
         </div>
 
         <div class="grid grid-cols-1 gap-4 md:grid-cols-2">

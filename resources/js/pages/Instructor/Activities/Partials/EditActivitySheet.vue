@@ -2,7 +2,7 @@
 import { useForm } from '@inertiajs/vue3'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
-import { Textarea } from '@/components/ui/textarea'
+import RichTextEditor from '@/components/RichTextEditor.vue'
 import { Label } from '@/components/ui/label'
 import { Switch } from '@/components/ui/switch'
 import { Separator } from '@/components/ui/separator'
@@ -133,7 +133,7 @@ function submit() {
             <!-- Instruction -->
             <div class="space-y-2">
               <Label for="instruction">Instruction</Label>
-              <Textarea id="instruction" v-model="form.instruction" rows="6" />
+              <RichTextEditor v-model="form.instruction" placeholder="Update instructions..." min-height="180px" />
               <Alert v-if="form.errors.instruction" variant="destructive" class="mt-2">
                 <AlertTitle>Error</AlertTitle>
                 <AlertDescription>{{ form.errors.instruction }}</AlertDescription>

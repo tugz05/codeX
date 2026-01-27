@@ -232,6 +232,10 @@ class ActivityController extends Controller
                 'section' => $classlist->section,
                 'criteriaOptions' => $criteria,
             ],
+            'other_classlists' => Classlist::where('user_id', Auth::id())
+                ->where('id', '!=', $classlist->id)
+                ->orderBy('name')
+                ->get(['id', 'name', 'room', 'section', 'academic_year']),
             'activities' => $activities,
             'assignments' => $assignments,
             'quizzes' => $quizzes,
@@ -274,6 +278,8 @@ class ActivityController extends Controller
         'accessible_time'  => ['nullable','date_format:H:i'],
         'attachments.*'    => ['file','max:20480'], // 20MB each; adjust as needed
         'criteria_id'      => ['nullable','integer','exists:criterias,id'],
+        'also_classlist_ids' => ['array'],
+        'also_classlist_ids.*' => ['integer', 'exists:classlists,id'],
     ]);
 
     // If criteria_id is present, ensure it belongs to this instructor
@@ -284,64 +290,77 @@ class ActivityController extends Controller
         abort_unless($owns, 403, 'You do not own the selected criteria.');
     }
 
-    $activity = Activity::create([
-        'classlist_id'     => $classlist->id,
-        'title'            => $data['title'],
-        'posted_by'        => $auth,
-        'instruction'      => $data['instruction'] ?? null,
-        'points'           => $data['points'] ?? null,
-        'due_date'         => $data['due_date'] ?? null,
-        'due_time'         => $data['due_time'] ?? null,
-        'accessible_date'  => $data['accessible_date'] ?? null,
-        'accessible_time'  => $data['accessible_time'] ?? null,
-    ]);
+    $targetIds = collect($data['also_classlist_ids'] ?? [])
+        ->push($classlist->id)
+        ->unique()
+        ->values();
 
-    // Attach files (if you already have this logic, keep it)
+    $targetClasslists = Classlist::where('user_id', $auth)
+        ->whereIn('id', $targetIds)
+        ->get();
+
+    abort_unless($targetClasslists->count() === $targetIds->count(), 403);
+
+    $attachmentPayloads = [];
     if ($request->hasFile('attachments')) {
         foreach ($request->file('attachments') as $file) {
             $path = $file->store('activity_attachments', 'public');
-            $activity->attachments()->create([
+            $attachmentPayloads[] = [
                 'name' => $file->getClientOriginalName(),
                 'type' => $file->getClientMimeType(),
                 'url'  => Storage::disk('public')->url($path),
                 'size' => $file->getSize(),
-            ]);
+            ];
         }
     }
 
-    // Attach criteria on pivot (optional assigned_points)
-    if (!empty($data['criteria_id'])) {
-        $activity->criteria()->sync([$data['criteria_id'] => ['assigned_points' => $data['points'] ?? null]]);
-    }
-
-    // Send notifications to enrolled students
     $notificationService = app(NotificationService::class);
-    $students = $classlist->students()->where('status', 'active')->get();
-    
-    foreach ($students as $student) {
-        $actionUrl = route('student.activities.show', [$classlist->id, $activity->id], false);
-        $message = "A new activity '{$activity->title}' has been posted in {$classlist->name}.";
-        
-        // In-app notification
-        $notificationService->sendNotification(
-            'activity_created',
-            [$student],
-            $activity->title,
-            $message,
-            Activity::class,
-            $activity->id,
-            $classlist->id,
-            $actionUrl
-        );
-        
-        // Email notification
-        $notificationService->sendEmailNotification(
-            'activity_created',
-            $student,
-            $activity->title,
-            $message,
-            url($actionUrl)
-        );
+
+    foreach ($targetClasslists as $targetClasslist) {
+        $activity = Activity::create([
+            'classlist_id'     => $targetClasslist->id,
+            'title'            => $data['title'],
+            'posted_by'        => $auth,
+            'instruction'      => $data['instruction'] ?? null,
+            'points'           => $data['points'] ?? null,
+            'due_date'         => $data['due_date'] ?? null,
+            'due_time'         => $data['due_time'] ?? null,
+            'accessible_date'  => $data['accessible_date'] ?? null,
+            'accessible_time'  => $data['accessible_time'] ?? null,
+        ]);
+
+        foreach ($attachmentPayloads as $payload) {
+            $activity->attachments()->create($payload);
+        }
+
+        if (!empty($data['criteria_id'])) {
+            $activity->criteria()->sync([$data['criteria_id'] => ['assigned_points' => $data['points'] ?? null]]);
+        }
+
+        $students = $targetClasslist->students()->where('status', 'active')->get();
+        foreach ($students as $student) {
+            $actionUrl = route('student.activities.show', [$targetClasslist->id, $activity->id], false);
+            $message = "A new activity '{$activity->title}' has been posted in {$targetClasslist->name}.";
+
+            $notificationService->sendNotification(
+                'activity_created',
+                [$student],
+                $activity->title,
+                $message,
+                Activity::class,
+                $activity->id,
+                $targetClasslist->id,
+                $actionUrl
+            );
+
+            $notificationService->sendEmailNotification(
+                'activity_created',
+                $student,
+                $activity->title,
+                $message,
+                url($actionUrl)
+            );
+        }
     }
 
     return back()->with('success', 'Activity created.');
