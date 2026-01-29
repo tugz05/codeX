@@ -24,16 +24,21 @@ class ClasslistUserController extends Controller
         $activeEnrollments = ClassListUser::with(['classlist'])
             ->where('user_id', Auth::id())
             ->where('status', 'active')
+            ->whereHas('classlist')
             ->get();
 
         $archivedEnrollments = ClassListUser::with(['classlist'])
             ->where('user_id', Auth::id())
             ->where('status', 'archive')
+            ->whereHas('classlist')
             ->get();
 
         return Inertia::render('Student/ClassList/Index', [
             'joinedClasses' => $activeEnrollments->map(function ($enrollment) {
                 $classlist = $enrollment->classlist;
+                if (!$classlist) {
+                    return null;
+                }
                 return [
                     'id' => $classlist->id,
                     'name' => $classlist->name,
@@ -42,9 +47,12 @@ class ClasslistUserController extends Controller
                     'section' => $classlist->section,
                     'joined_at' => $enrollment->joined_at,
                 ];
-            }),
+            })->filter()->values(),
             'archivedClasses' => $archivedEnrollments->map(function ($enrollment) {
                 $classlist = $enrollment->classlist;
+                if (!$classlist) {
+                    return null;
+                }
                 return [
                     'id' => $classlist->id,
                     'name' => $classlist->name,
@@ -53,7 +61,7 @@ class ClasslistUserController extends Controller
                     'section' => $classlist->section,
                     'joined_at' => $enrollment->joined_at,
                 ];
-            }),
+            })->filter()->values(),
             'joinCode' => $request->query('code'),
             'requiresStudentAccount' => false,
         ]);
