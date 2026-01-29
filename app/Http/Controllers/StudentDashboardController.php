@@ -29,9 +29,13 @@ class StudentDashboardController extends Controller
         $enrolledClasses = ClassListUser::with(['classlist'])
             ->where('user_id', $userId)
             ->where('status', 'active')
+            ->whereHas('classlist')
             ->get()
             ->map(function ($enrollment) {
                 $classlist = $enrollment->classlist;
+                if (!$classlist) {
+                    return null;
+                }
                 return [
                     'id' => $classlist->id,
                     'name' => $classlist->name,
@@ -40,7 +44,9 @@ class StudentDashboardController extends Controller
                     'section' => $classlist->section,
                     'joined_at' => $enrollment->joined_at?->toIso8601String(),
                 ];
-            });
+            })
+            ->filter()
+            ->values();
 
         $classlistIds = $enrolledClasses->pluck('id')->toArray();
 
