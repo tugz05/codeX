@@ -210,6 +210,41 @@ function getStatusColor(status: string) {
       return 'bg-gray-100 text-gray-800 dark:bg-gray-900 dark:text-gray-200'
   }
 }
+
+function formatStudentName(name?: string | null): string {
+  if (!name) return ''
+
+  const suffixes = new Set(['jr', 'sr', 'ii', 'iii', 'iv', 'v'])
+  const trimmed = name.trim()
+
+  if (!trimmed) return ''
+
+  if (trimmed.includes(',')) {
+    const [lastPart, restPart = ''] = trimmed.split(',').map(part => part.trim())
+    const tokens = restPart.split(/\s+/).filter(Boolean)
+    let suffix = ''
+    if (tokens.length > 1 && suffixes.has(tokens[tokens.length - 1].toLowerCase().replace('.', ''))) {
+      suffix = tokens.pop() || ''
+    }
+    const first = tokens.shift() || ''
+    const middleInitial = tokens.length > 0 ? tokens[0].charAt(0).toUpperCase() : ''
+    return `${lastPart}, ${first}${suffix ? `, ${suffix}` : ''}${middleInitial ? ` ${middleInitial}.` : ''}`.trim()
+  }
+
+  const tokens = trimmed.split(/\s+/).filter(Boolean)
+  if (tokens.length === 1) return tokens[0]
+
+  let suffix = ''
+  if (suffixes.has(tokens[tokens.length - 1].toLowerCase().replace('.', ''))) {
+    suffix = tokens.pop() || ''
+  }
+
+  const last = tokens.pop() || ''
+  const first = tokens.shift() || ''
+  const middleInitial = tokens.length > 0 ? tokens[0].charAt(0).toUpperCase() : ''
+
+  return `${last}, ${first}${suffix ? `, ${suffix}` : ''}${middleInitial ? ` ${middleInitial}.` : ''}`.trim()
+}
 </script>
 
 <template>
@@ -372,7 +407,7 @@ function getStatusColor(status: string) {
             </TableHeader>
             <TableBody>
               <TableRow v-for="stat in props.studentStats" :key="stat.student.id">
-                <TableCell class="font-medium">{{ stat.student.name }}</TableCell>
+                <TableCell class="font-medium">{{ formatStudentName(stat.student.name) }}</TableCell>
                 <TableCell>{{ stat.total_sessions }}</TableCell>
                 <TableCell>
                   <Badge :class="getStatusColor('present')">{{ stat.present }}</Badge>
@@ -447,7 +482,7 @@ function getStatusColor(status: string) {
                 <TableRow v-for="(record, index) in form.records" :key="index">
                   <TableCell class="font-medium">{{ index + 1 }}</TableCell>
                   <TableCell class="font-medium">
-                    {{ props.students.find(s => s.id === record.user_id)?.name }}
+                    {{ formatStudentName(props.students.find(s => s.id === record.user_id)?.name) }}
                   </TableCell>
                   <TableCell class="text-muted-foreground">
                     {{ props.students.find(s => s.id === record.user_id)?.email }}
@@ -531,7 +566,7 @@ function getStatusColor(status: string) {
                 <TableRow v-for="(record, index) in editForm.records" :key="index">
                   <TableCell class="font-medium">{{ index + 1 }}</TableCell>
                   <TableCell class="font-medium">
-                    {{ props.students.find(s => s.id === record.user_id)?.name }}
+                    {{ formatStudentName(props.students.find(s => s.id === record.user_id)?.name) }}
                   </TableCell>
                   <TableCell class="text-muted-foreground">
                     {{ props.students.find(s => s.id === record.user_id)?.email }}
