@@ -81,6 +81,8 @@ class NotificationService
         
         if (class_exists($notificationClass)) {
             $notification = new $notificationClass($title, $message, $actionUrl);
+            // Force async delivery to avoid blocking resource creation.
+            $notification->onConnection('database')->onQueue('notifications');
             $user->notify($notification);
         }
     }
