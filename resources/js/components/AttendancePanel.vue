@@ -60,6 +60,27 @@ const selectedSession = ref<any>(null)
 const editingSessionId = ref<number | null>(null)
 const hasStudents = computed(() => props.students.length > 0)
 
+function getLastName(name?: string | null): string {
+  if (!name) return ''
+  const trimmed = name.trim()
+  if (!trimmed) return ''
+  if (trimmed.includes(',')) {
+    return trimmed.split(',')[0].trim().toLowerCase()
+  }
+  const parts = trimmed.split(/\s+/).filter(Boolean)
+  return (parts[parts.length - 1] || '').toLowerCase()
+}
+
+const sortedStudents = computed(() => {
+  return [...props.students].sort((a, b) => {
+    const lastA = getLastName(a.name)
+    const lastB = getLastName(b.name)
+    if (lastA < lastB) return -1
+    if (lastA > lastB) return 1
+    return a.name.localeCompare(b.name)
+  })
+})
+
 const form = useForm({
   session_date: new Date().toISOString().split('T')[0],
   session_time: new Date().toTimeString().slice(0, 5),
@@ -94,7 +115,7 @@ function openMarkDialog() {
   form.reset()
   form.session_date = new Date().toISOString().split('T')[0]
   form.session_time = new Date().toTimeString().slice(0, 5)
-  form.records = props.students.map(student => ({
+  form.records = sortedStudents.value.map(student => ({
     user_id: student.id,
     status: 'present',
   }))
@@ -121,7 +142,7 @@ function openEditDialog(session: any) {
       editForm.notes = data.notes || ''
 
       const existingRecords = data.records || []
-      editForm.records = props.students.map(student => {
+      editForm.records = sortedStudents.value.map(student => {
         const existing = existingRecords.find((r: any) => r.user_id === student.id)
         return existing || {
           user_id: student.id,
@@ -406,7 +427,7 @@ function formatStudentName(name?: string | null): string {
               </TableRow>
             </TableHeader>
             <TableBody>
-              <TableRow v-for="stat in props.studentStats" :key="stat.student.id">
+                <TableRow v-for="stat in [...props.studentStats].sort((a, b) => getLastName(a.student.name).localeCompare(getLastName(b.student.name)))" :key="stat.student.id">
                 <TableCell class="font-medium">{{ formatStudentName(stat.student.name) }}</TableCell>
                 <TableCell>{{ stat.total_sessions }}</TableCell>
                 <TableCell>
