@@ -12,7 +12,7 @@ import {
 import ActivityRowCard from './Partials/ActivityRowCard.vue'
 import CreateActivitySheet from './Partials/CreateActivitySheet.vue'
 import EditActivitySheet from './Partials/EditActivitySheet.vue'
-import { Plus, ArrowLeft, FileText, ClipboardList, GraduationCap, Trash2, Edit, Eye, ChevronDown, Users, Mail, Calendar, Search, ArrowUpDown, Download, BookOpen, EllipsisVertical, NotebookPen, UserMinus } from 'lucide-vue-next'
+import { Plus, ArrowLeft, FileText, ClipboardList, GraduationCap, Trash2, Edit, Eye, ChevronDown, Users, Mail, Calendar, Search, ArrowUpDown, Download, BookOpen, EllipsisVertical, NotebookPen, UserMinus, UserPlus } from 'lucide-vue-next'
 import { ref, computed } from 'vue'
 import { toast } from 'vue-sonner'
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs'
@@ -252,6 +252,26 @@ const removeStudent = (studentId: number) => {
     onFinish: () => {
       removingStudentId.value = null
     },
+  })
+}
+
+const inviteEmail = ref('')
+const invitingStudent = ref(false)
+const inviteStudent = () => {
+  const email = inviteEmail.value.trim()
+  if (!email || !props.classlist?.id) return
+  invitingStudent.value = true
+  router.post(route('instructor.classlist.students.invite', props.classlist.id), { email }, {
+    onSuccess: () => {
+      inviteEmail.value = ''
+      toast.success('Student added and invitation email sent.')
+    },
+    onError: (errors) => {
+      toast.error(errors?.email || 'Failed to add student.')
+    },
+    onFinish: () => {
+      invitingStudent.value = false
+    }
   })
 }
 
@@ -800,6 +820,36 @@ const toggleSort = (field: 'name' | 'email' | 'joined_at') => {
                     <p class="text-sm font-medium text-muted-foreground mb-1">Showing</p>
                     <p class="text-3xl font-bold">{{ filteredStudents.length }}</p>
                   </div>
+                </div>
+              </CardContent>
+            </Card>
+
+            <!-- Invite Student -->
+            <Card class="border-2">
+              <CardHeader>
+                <CardTitle class="flex items-center gap-2">
+                  <UserPlus class="h-5 w-5" />
+                  Add Student by Email
+                </CardTitle>
+                <CardDescription>
+                  Add a student directly and send an invitation email to join this class.
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div class="flex flex-col sm:flex-row gap-3 sm:items-center">
+                  <Input
+                    v-model="inviteEmail"
+                    type="email"
+                    placeholder="student@example.com"
+                    class="border-2"
+                  />
+                  <Button
+                    :disabled="invitingStudent || !inviteEmail.trim()"
+                    @click="inviteStudent"
+                  >
+                    <UserPlus class="mr-2 h-4 w-4" />
+                    Add Student
+                  </Button>
                 </div>
               </CardContent>
             </Card>

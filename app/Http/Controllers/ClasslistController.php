@@ -4,6 +4,8 @@ namespace App\Http\Controllers;
 
 use App\Http\Requests\StoreClassListRequest;
 use App\Models\Classlist;
+use App\Models\User;
+use App\Notifications\ClassInvitationNotification;
 use App\Services\ClassListService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -129,6 +131,61 @@ class ClasslistController extends Controller
         $classlist->students()->detach($student->id);
 
         return back()->with('success', 'Student removed from class.');
+    }
+
+    /**
+     * Invite/add a student to the class by email.
+     */
+    public function inviteStudent(Request $request, Classlist $classlist)
+    {
+        abort_unless($classlist->user_id === auth()->id(), 403);
+
+        $validated = $request->validate([
+            'email' => 'required|email',
+        ]);
+
+        $student = User::where('email', $validated['email'])->first();
+
+        if (!$student) {
+            return back()->withErrors(['email' => 'No student account found with that email.']);
+        }
+
+        if ($student->account_type !== 'student') {
+            return back()->withErrors(['email' => 'This email is not a student account.']);
+        }
+
+        $existing = $classlist->students()
+            ->withPivot('status')
+            ->where('users.id', $student->id)
+            ->first();
+
+        if ($existing && $existing->pivot->status === 'active') {
+            return back()->with('success', 'Student is already enrolled in this class.');
+        }
+
+        if ($existing) {
+            $classlist->students()->updateExistingPivot($student->id, [
+                'status' => 'active',
+                'joined_at' => now(),
+            ]);
+        } else {
+            $classlist->students()->attach($student->id, [
+                'status' => 'active',
+                'joined_at' => now(),
+            ]);
+        }
+
+        $notification = new ClassInvitationNotification(
+            $classlist->name,
+            $classlist->user->name ?? 'Instructor',
+            $classlist->id,
+            route('student.class.show', $classlist->id)
+        );
+
+        $notification->onConnection('database')->onQueue('notifications');
+        $student->notify($notification);
+
+        return back()->with('success', 'Student added and invitation email sent.');
     }
 
     /**
