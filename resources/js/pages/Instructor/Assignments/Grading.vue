@@ -277,7 +277,7 @@ const gradedSubmissions = computed(() => props.submissions.filter(s => s.status 
 <template>
   <Head :title="`Grade ${assignment.title}`" />
   <AppLayout>
-    <div class="container mx-auto p-6 max-w-7xl">
+    <div class="container mx-auto p-6 max-w-[1920px]">
       <!-- Header -->
       <div class="mb-6">
         <div class="flex items-center justify-between">
@@ -304,7 +304,7 @@ const gradedSubmissions = computed(() => props.submissions.filter(s => s.status 
 
         <!-- Individual Grading Tab -->
         <TabsContent value="individual" class="space-y-4">
-          <div class="grid grid-cols-1 lg:grid-cols-5 gap-4">
+          <div class="grid grid-cols-1 lg:grid-cols-7 gap-4">
             <!-- Submissions List -->
             <Card class="lg:col-span-1">
               <CardHeader>
@@ -312,7 +312,7 @@ const gradedSubmissions = computed(() => props.submissions.filter(s => s.status 
                 <CardDescription>{{ submissions.length }} total</CardDescription>
               </CardHeader>
               <CardContent>
-                <div class="space-y-2 max-h-[700px] overflow-y-auto">
+                <div class="space-y-2 max-h-[calc(100vh-280px)] overflow-y-auto">
                   <div
                     v-for="submission in submissions"
                     :key="submission.id"
@@ -345,7 +345,7 @@ const gradedSubmissions = computed(() => props.submissions.filter(s => s.status 
             </Card>
 
             <!-- Grading Form -->
-            <Card class="lg:col-span-2 h-[700px] flex flex-col" v-if="currentSubmission">
+            <Card class="lg:col-span-2 h-[calc(100vh-280px)] flex flex-col" v-if="currentSubmission">
               <CardHeader class="pb-3">
                 <div class="flex items-center justify-between">
                   <div>
@@ -496,18 +496,18 @@ const gradedSubmissions = computed(() => props.submissions.filter(s => s.status 
             </Card>
 
             <!-- File Preview Panel -->
-            <Card class="lg:col-span-2 h-[700px]" v-if="currentSubmission">
-              <CardHeader class="pb-3">
+            <Card class="lg:col-span-4 h-[calc(100vh-280px)] flex flex-col" v-if="currentSubmission">
+              <CardHeader class="pb-3 shrink-0">
                 <CardTitle>File Preview</CardTitle>
                 <CardDescription>{{ currentSubmission.attachments.length }} attachment(s)</CardDescription>
               </CardHeader>
-              <CardContent class="h-[calc(100%-80px)]">
+              <CardContent class="flex-1 min-h-0">
                 <FilePreviewEmbed :file="previewFile" />
               </CardContent>
             </Card>
 
             <!-- Empty State -->
-            <Card class="lg:col-span-4" v-else>
+            <Card class="lg:col-span-6" v-else>
               <CardContent class="flex items-center justify-center h-64">
                 <div class="text-center text-muted-foreground">
                   <FileText class="h-12 w-12 mx-auto mb-2 opacity-50" />

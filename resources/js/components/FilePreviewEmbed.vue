@@ -77,67 +77,67 @@ const handleDownload = () => {
 
     <template v-else>
       <!-- Header -->
-      <div class="border-b bg-gradient-to-b from-background to-muted/30 p-3">
+      <div class="border-b bg-gradient-to-b from-background to-muted/30 p-2">
         <div class="flex items-center justify-between gap-2">
           <div class="flex items-center gap-2 min-w-0">
-            <div class="flex h-8 w-8 items-center justify-center rounded-lg border bg-card shadow-sm shrink-0">
-              <component :is="fileIcon" class="h-4 w-4 text-muted-foreground" />
+            <div class="flex h-7 w-7 items-center justify-center rounded-lg border bg-card shadow-sm shrink-0">
+              <component :is="fileIcon" class="h-3.5 w-3.5 text-muted-foreground" />
             </div>
             <div class="min-w-0">
               <h3 class="font-semibold truncate text-sm">{{ file.name }}</h3>
-              <div class="flex items-center gap-2 text-xs text-muted-foreground">
+              <div class="flex items-center gap-1.5 text-xs text-muted-foreground">
                 <span>{{ formatFileSize(file.size) }}</span>
                 <span class="text-muted-foreground/60">•</span>
                 <span class="capitalize">{{ fileType }}</span>
               </div>
             </div>
           </div>
-          <Button variant="outline" size="sm" class="h-8 px-2 shrink-0" @click="handleDownload">
+          <Button variant="outline" size="sm" class="h-7 px-2 shrink-0" @click="handleDownload">
             <Download class="h-3 w-3" />
           </Button>
         </div>
       </div>
 
       <!-- Preview Content -->
-      <div class="flex-1 overflow-auto bg-muted/20 p-3">
+      <div class="flex-1 overflow-auto bg-muted/20 p-2">
         <!-- Image Preview -->
-        <div v-if="fileType === 'image'" class="flex items-center justify-center h-full">
+        <div v-if="fileType === 'image'" class="flex items-center justify-center h-full w-full">
           <img
             :src="file.url"
             :alt="file.name"
-            class="max-w-full max-h-full object-contain rounded-lg border bg-card shadow-sm"
+            class="max-w-full max-h-full object-contain rounded-lg border bg-card shadow-md"
           />
         </div>
 
         <!-- PDF Preview -->
-        <div v-else-if="fileType === 'pdf'" class="h-full">
+        <div v-else-if="fileType === 'pdf'" class="h-full w-full">
           <iframe
             :src="file.url"
-            class="w-full h-full rounded-lg border bg-background shadow-sm"
+            class="w-full h-full rounded-lg border-0 bg-background"
             frameborder="0"
           ></iframe>
         </div>
 
         <!-- Video Preview -->
-        <div v-else-if="fileType === 'video'" class="flex items-center justify-center h-full">
+        <div v-else-if="fileType === 'video'" class="flex items-center justify-center h-full w-full">
           <video
             :src="file.url"
             controls
-            class="max-w-full max-h-full rounded-lg border bg-card shadow-sm"
+            class="max-w-full max-h-full rounded-lg border bg-card shadow-md"
           >
             Your browser does not support the video tag.
           </video>
         </div>
 
         <!-- Office Previews -->
-        <div v-else-if="fileType === 'docx'" class="h-full rounded-lg border bg-background p-2 shadow-sm overflow-auto">
-          <VueOfficeDocx :src="file.url" />
+        <div v-else-if="fileType === 'docx'" class="h-full w-full rounded-lg border bg-background p-3 shadow-sm overflow-auto">
+          <VueOfficeDocx :src="file.url" style="min-height: 100%; width: 100%;" />
         </div>
-        <div v-else-if="fileType === 'xlsx'" class="h-full rounded-lg border bg-background p-2 shadow-sm overflow-auto">
-          <VueOfficeExcel :src="file.url" />
+        <div v-else-if="fileType === 'xlsx'" class="h-full w-full rounded-lg border bg-background p-3 shadow-sm overflow-auto">
+          <VueOfficeExcel :src="file.url" style="min-height: 100%; width: 100%;" />
         </div>
-        <div v-else-if="fileType === 'pptx'" class="h-full rounded-lg border bg-background p-2 shadow-sm overflow-auto">
-          <VueOfficePptx :src="file.url" />
+        <div v-else-if="fileType === 'pptx'" class="h-full w-full rounded-lg border bg-background p-3 shadow-sm overflow-auto">
+          <VueOfficePptx :src="file.url" style="min-height: 100%; width: 100%;" />
         </div>
 
         <!-- Other Files -->
