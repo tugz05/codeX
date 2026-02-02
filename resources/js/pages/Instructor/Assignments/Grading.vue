@@ -13,8 +13,9 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Checkbox } from '@/components/ui/checkbox';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { ArrowLeft, Check, X, FileText, Link as LinkIcon, Video, Download, MessageSquare, Star, AlertCircle } from 'lucide-vue-next';
+import { ArrowLeft, Check, X, FileText, Link as LinkIcon, Video, Download, MessageSquare, Star, AlertCircle, Eye } from 'lucide-vue-next';
 import { toast } from 'vue-sonner';
+import FilePreviewEmbed from '@/components/FilePreviewEmbed.vue';
 
 interface Props {
   classlist: {
@@ -72,6 +73,7 @@ const selectedRubric = ref<number | null>(null);
 const bulkGradingMode = ref(false);
 const selectedForBulk = ref<Set<number>>(new Set());
 const returnToStudents = ref(false);
+const previewFile = ref<{ id: number; name: string; url: string; type?: string | null; size?: number | null } | null>(null);
 
 const currentSubmission = computed(() => {
   if (!selectedSubmission.value) return null;
@@ -110,7 +112,28 @@ const openSubmission = (submissionId: number) => {
     individualForm.override_reason = submission.override_reason ?? '';
     individualForm.return_to_student = false;
     selectedRubric.value = submission.criteria_id;
+    
+    // Auto-preview first attachment if available
+    if (submission.attachments && submission.attachments.length > 0) {
+      previewFile.value = {
+        id: submission.attachments[0].id,
+        name: submission.attachments[0].name,
+        url: submission.attachments[0].url,
+        size: submission.attachments[0].size,
+      };
+    } else {
+      previewFile.value = null;
+    }
   }
+};
+
+const setPreviewFile = (att: { id: number; name: string; url: string; size: number }) => {
+  previewFile.value = {
+    id: att.id,
+    name: att.name,
+    url: att.url,
+    size: att.size,
+  };
 };
 
 const calculateRubricScore = () => {
@@ -281,15 +304,15 @@ const gradedSubmissions = computed(() => props.submissions.filter(s => s.status 
 
         <!-- Individual Grading Tab -->
         <TabsContent value="individual" class="space-y-4">
-          <div class="grid grid-cols-1 lg:grid-cols-3 gap-4">
+          <div class="grid grid-cols-1 lg:grid-cols-5 gap-4">
             <!-- Submissions List -->
             <Card class="lg:col-span-1">
               <CardHeader>
                 <CardTitle>Submissions</CardTitle>
-                <CardDescription>{{ submissions.length }} total submissions</CardDescription>
+                <CardDescription>{{ submissions.length }} total</CardDescription>
               </CardHeader>
               <CardContent>
-                <div class="space-y-2 max-h-[600px] overflow-y-auto">
+                <div class="space-y-2 max-h-[700px] overflow-y-auto">
                   <div
                     v-for="submission in submissions"
                     :key="submission.id"
@@ -322,8 +345,8 @@ const gradedSubmissions = computed(() => props.submissions.filter(s => s.status 
             </Card>
 
             <!-- Grading Form -->
-            <Card class="lg:col-span-2" v-if="currentSubmission">
-              <CardHeader>
+            <Card class="lg:col-span-2 h-[700px] flex flex-col" v-if="currentSubmission">
+              <CardHeader class="pb-3">
                 <div class="flex items-center justify-between">
                   <div>
                     <CardTitle>{{ currentSubmission.student.name }}</CardTitle>
@@ -334,11 +357,11 @@ const gradedSubmissions = computed(() => props.submissions.filter(s => s.status 
                   </Badge>
                 </div>
               </CardHeader>
-              <CardContent class="space-y-6">
+              <CardContent class="space-y-4 flex-1 overflow-y-auto">
                 <!-- Submission Content -->
                 <div class="space-y-2">
                   <Label>Submission</Label>
-                  <div class="border rounded-lg p-4 space-y-3">
+                  <div class="border rounded-lg p-3 space-y-2">
                     <div v-if="currentSubmission.submission_type === 'link' && currentSubmission.link_url" class="flex items-center gap-2">
                       <LinkIcon class="h-4 w-4" />
                       <a :href="currentSubmission.link_url" target="_blank" class="text-blue-600 hover:underline">
@@ -355,9 +378,10 @@ const gradedSubmissions = computed(() => props.submissions.filter(s => s.status 
                       <div class="text-sm font-medium">Attachments:</div>
                       <div v-for="att in currentSubmission.attachments" :key="att.id" class="flex items-center gap-2">
                         <FileText class="h-4 w-4" />
-                        <a :href="att.url" target="_blank" class="text-blue-600 hover:underline">
-                          {{ att.name }}
-                        </a>
+                        <span class="flex-1 truncate text-sm">{{ att.name }}</span>
+                        <Button variant="ghost" size="sm" @click="setPreviewFile(att)" :class="previewFile?.id === att.id ? 'bg-primary/10' : ''">
+                          <Eye class="h-3 w-3" />
+                        </Button>
                         <Button variant="ghost" size="sm" @click="window.open(att.url, '_blank')">
                           <Download class="h-3 w-3" />
                         </Button>
@@ -433,7 +457,7 @@ const gradedSubmissions = computed(() => props.submissions.filter(s => s.status 
                   <Textarea
                     id="feedback"
                     v-model="individualForm.feedback"
-                    rows="5"
+                    rows="3"
                     placeholder="Enter feedback for the student..."
                   />
                 </div>
@@ -471,8 +495,19 @@ const gradedSubmissions = computed(() => props.submissions.filter(s => s.status 
               </CardContent>
             </Card>
 
+            <!-- File Preview Panel -->
+            <Card class="lg:col-span-2 h-[700px]" v-if="currentSubmission">
+              <CardHeader class="pb-3">
+                <CardTitle>File Preview</CardTitle>
+                <CardDescription>{{ currentSubmission.attachments.length }} attachment(s)</CardDescription>
+              </CardHeader>
+              <CardContent class="h-[calc(100%-80px)]">
+                <FilePreviewEmbed :file="previewFile" />
+              </CardContent>
+            </Card>
+
             <!-- Empty State -->
-            <Card class="lg:col-span-2" v-else>
+            <Card class="lg:col-span-4" v-else>
               <CardContent class="flex items-center justify-center h-64">
                 <div class="text-center text-muted-foreground">
                   <FileText class="h-12 w-12 mx-auto mb-2 opacity-50" />
