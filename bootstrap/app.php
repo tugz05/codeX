@@ -27,5 +27,24 @@ return Application::configure(basePath: dirname(__DIR__))
     })
 
     ->withExceptions(function (Exceptions $exceptions) {
-        //
+        $exceptions->respond(function ($response, $exception, $request) {
+            // Handle authentication exceptions for Inertia requests
+            if ($exception instanceof \Illuminate\Auth\AuthenticationException) {
+                if ($request->header('X-Inertia')) {
+                    // For Inertia requests, return a 409 response to force a client-side reload
+                    return response()->json([
+                        'message' => 'Your session has expired. Please log in again.',
+                    ], 409)->header('X-Inertia-Location', route('login'));
+                }
+            }
+            
+            // Handle 419 CSRF token mismatch for Inertia
+            if ($exception instanceof \Illuminate\Session\TokenMismatchException && $request->header('X-Inertia')) {
+                return response()->json([
+                    'message' => 'Page expired. Please refresh and try again.',
+                ], 419)->header('X-Inertia-Location', $request->url());
+            }
+            
+            return $response;
+        });
     })->create();

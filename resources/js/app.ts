@@ -1,6 +1,6 @@
 import '../css/app.css';
 
-import { createInertiaApp } from '@inertiajs/vue3';
+import { createInertiaApp, router } from '@inertiajs/vue3';
 import { resolvePageComponent } from 'laravel-vite-plugin/inertia-helpers';
 import type { DefineComponent } from 'vue';
 import { createApp, h } from 'vue';
@@ -25,6 +25,43 @@ createInertiaApp({
     progress: {
         color: '#4B5563',
     },
+});
+
+// Handle session timeout and authentication errors
+let isHandlingSessionTimeout = false;
+
+router.on('error', (event) => {
+    if (isHandlingSessionTimeout) return;
+    
+    const response = event.detail.response;
+    const status = response?.status;
+    
+    // Handle authentication and session errors
+    if (status === 401 || status === 419 || status === 409) {
+        isHandlingSessionTimeout = true;
+        
+        // Check for redirect location in header
+        const redirectUrl = response.headers?.['x-inertia-location'] || '/login';
+        
+        // Force a full page reload
+        window.location.href = redirectUrl;
+    }
+});
+
+// Additional error handling for network issues
+router.on('exception', (event) => {
+    if (isHandlingSessionTimeout) return;
+    
+    console.error('Inertia exception:', event.detail);
+    
+    const error = event.detail.error;
+    const status = error?.response?.status;
+    
+    // Handle authentication errors
+    if (status === 401 || status === 419 || status === 409) {
+        isHandlingSessionTimeout = true;
+        window.location.href = '/login';
+    }
 });
 
 // This will set light / dark mode on page load...
