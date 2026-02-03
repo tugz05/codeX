@@ -104,7 +104,14 @@ class MaterialController extends Controller
                 $material->attachments()->create($payload);
             }
 
-            $students = $targetClasslist->students()->where('status', 'active')->get();
+            $students = $targetClasslist->students()->where('classlist_user.status', 'active')->get();
+            
+            \Log::info("Sending material notifications", [
+                'material_id' => $material->id,
+                'classlist_id' => $targetClasslist->id,
+                'students_count' => $students->count(),
+            ]);
+
             foreach ($students as $student) {
                 $actionUrl = route('student.materials.show', [$targetClasslist->id, $material->id], false);
                 $message = "New material '{$material->title}' has been posted in {$targetClasslist->name}.";

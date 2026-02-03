@@ -337,7 +337,14 @@ class ActivityController extends Controller
             $activity->criteria()->sync([$data['criteria_id'] => ['assigned_points' => $data['points'] ?? null]]);
         }
 
-        $students = $targetClasslist->students()->where('status', 'active')->get();
+        $students = $targetClasslist->students()->where('classlist_user.status', 'active')->get();
+        
+        \Log::info("Sending activity notifications", [
+            'activity_id' => $activity->id,
+            'classlist_id' => $targetClasslist->id,
+            'students_count' => $students->count(),
+        ]);
+
         foreach ($students as $student) {
             $actionUrl = route('student.activities.show', [$targetClasslist->id, $activity->id], false);
             $message = "A new activity '{$activity->title}' has been posted in {$targetClasslist->name}.";

@@ -127,7 +127,14 @@ class QuizController extends Controller
 
                 if ($quiz->is_published) {
                     $notificationService = app(NotificationService::class);
-                    $students = $targetClasslist->students()->where('status', 'active')->get();
+                    $students = $targetClasslist->students()->where('classlist_user.status', 'active')->get();
+                    
+                    \Log::info("Sending quiz notifications", [
+                        'quiz_id' => $quiz->id,
+                        'classlist_id' => $targetClasslist->id,
+                        'students_count' => $students->count(),
+                    ]);
+
                     foreach ($students as $student) {
                         $actionUrl = route('student.quizzes.show', [$targetClasslist->id, $quiz->id], false);
                         $message = "A new quiz '{$quiz->title}' is now available in {$targetClasslist->name}.";
@@ -300,8 +307,14 @@ class QuizController extends Controller
             // Send notifications if quiz was just published
             if (!$wasPublished && $quiz->is_published) {
                 $notificationService = app(NotificationService::class);
-                $students = $classlist->students()->where('status', 'active')->get();
+                $students = $classlist->students()->where('classlist_user.status', 'active')->get();
                 
+                \Log::info("Sending quiz published notifications", [
+                    'quiz_id' => $quiz->id,
+                    'classlist_id' => $classlist->id,
+                    'students_count' => $students->count(),
+                ]);
+
                 foreach ($students as $student) {
                     $actionUrl = route('student.quizzes.show', [$classlist->id, $quiz->id], false);
                     $message = "A new quiz '{$quiz->title}' is now available in {$classlist->name}.";

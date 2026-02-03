@@ -69,21 +69,53 @@ class NotificationService
         string $message,
         ?string $actionUrl = null
     ): void {
-        $preferences = $this->getUserPreferences($user);
-        $preferenceKey = $typeKey . '_email';
-        
-        if (!($preferences->$preferenceKey ?? true)) {
-            return; // User has disabled email notifications for this type
-        }
+        try {
+            \Log::info("Attempting to send email notification", [
+                'type' => $typeKey,
+                'user_id' => $user->id,
+                'user_email' => $user->email,
+                'title' => $title,
+            ]);
 
-        // Use Laravel's notification system for emails
-        $notificationClass = 'App\\Notifications\\' . $this->getNotificationClass($typeKey);
-        
-        if (class_exists($notificationClass)) {
+            $preferences = $this->getUserPreferences($user);
+            $preferenceKey = $typeKey . '_email';
+            
+            if (!($preferences->$preferenceKey ?? true)) {
+                \Log::info("Email notification skipped - user preference disabled", [
+                    'user_id' => $user->id,
+                    'preference_key' => $preferenceKey,
+                ]);
+                return; // User has disabled email notifications for this type
+            }
+
+            // Use Laravel's notification system for emails
+            $notificationClass = 'App\\Notifications\\' . $this->getNotificationClass($typeKey);
+            
+            if (!class_exists($notificationClass)) {
+                \Log::error("Notification class does not exist", [
+                    'class' => $notificationClass,
+                    'type_key' => $typeKey,
+                ]);
+                return;
+            }
+
             $notification = new $notificationClass($title, $message, $actionUrl);
             // Force async delivery to avoid blocking resource creation.
             $notification->onConnection('database')->onQueue('notifications');
             $user->notify($notification);
+
+            \Log::info("Email notification queued successfully", [
+                'type' => $typeKey,
+                'user_id' => $user->id,
+                'notification_class' => $notificationClass,
+            ]);
+        } catch (\Exception $e) {
+            \Log::error("Failed to queue email notification", [
+                'type' => $typeKey,
+                'user_id' => $user->id,
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString(),
+            ]);
         }
     }
 

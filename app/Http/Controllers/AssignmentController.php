@@ -88,11 +88,19 @@ class AssignmentController extends Controller
                 AssignmentAttachment::create($payload + ['assignment_id' => $assignment->id]);
             }
 
-            $students = $targetClasslist->students()->where('status', 'active')->get();
+            $students = $targetClasslist->students()->where('classlist_user.status', 'active')->get();
+            
+            \Log::info("Sending assignment notifications", [
+                'assignment_id' => $assignment->id,
+                'classlist_id' => $targetClasslist->id,
+                'students_count' => $students->count(),
+            ]);
+
             foreach ($students as $student) {
                 $actionUrl = route('student.assignments.show', [$targetClasslist->id, $assignment->id], false);
                 $message = "A new assignment '{$assignment->title}' has been posted in {$targetClasslist->name}.";
 
+                // Send in-app notification
                 $notificationService->sendNotification(
                     'assignment_created',
                     [$student],
@@ -104,6 +112,7 @@ class AssignmentController extends Controller
                     $actionUrl
                 );
 
+                // Send email notification
                 $notificationService->sendEmailNotification(
                     'assignment_created',
                     $student,

@@ -129,7 +129,14 @@ class ExaminationController extends Controller
 
                 if ($examination->is_published) {
                     $notificationService = app(NotificationService::class);
-                    $students = $targetClasslist->students()->where('status', 'active')->get();
+                    $students = $targetClasslist->students()->where('classlist_user.status', 'active')->get();
+                    
+                    \Log::info("Sending examination notifications", [
+                        'examination_id' => $examination->id,
+                        'classlist_id' => $targetClasslist->id,
+                        'students_count' => $students->count(),
+                    ]);
+
                     foreach ($students as $student) {
                         $actionUrl = route('student.examinations.show', [$targetClasslist->id, $examination->id], false);
                         $message = "A new examination '{$examination->title}' is now available in {$targetClasslist->name}.";
@@ -305,8 +312,14 @@ class ExaminationController extends Controller
             // Send notifications if examination was just published
             if (!$wasPublished && $examination->is_published) {
                 $notificationService = app(NotificationService::class);
-                $students = $classlist->students()->where('status', 'active')->get();
+                $students = $classlist->students()->where('classlist_user.status', 'active')->get();
                 
+                \Log::info("Sending examination published notifications", [
+                    'examination_id' => $examination->id,
+                    'classlist_id' => $classlist->id,
+                    'students_count' => $students->count(),
+                ]);
+
                 foreach ($students as $student) {
                     $actionUrl = route('student.examinations.show', [$classlist->id, $examination->id], false);
                     $message = "A new examination '{$examination->title}' is now available in {$classlist->name}.";
