@@ -12,7 +12,7 @@ import {
 import ActivityRowCard from './Partials/ActivityRowCard.vue'
 import CreateActivitySheet from './Partials/CreateActivitySheet.vue'
 import EditActivitySheet from './Partials/EditActivitySheet.vue'
-import { Plus, ArrowLeft, FileText, ClipboardList, GraduationCap, Trash2, Edit, Eye, ChevronDown, Users, Mail, Calendar, Search, ArrowUpDown, Download, BookOpen, EllipsisVertical, NotebookPen, UserMinus, UserPlus } from 'lucide-vue-next'
+import { Plus, ArrowLeft, FileText, ClipboardList, GraduationCap, Trash2, Edit, Eye, ChevronDown, Users, Mail, Calendar, Search, ArrowUpDown, Download, BookOpen, EllipsisVertical, NotebookPen, UserMinus, UserPlus, Calculator } from 'lucide-vue-next'
 import { ref, computed } from 'vue'
 import { toast } from 'vue-sonner'
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs'
@@ -455,11 +455,15 @@ const toggleSort = (field: 'name' | 'email' | 'joined_at') => {
 
       <!-- Tabs -->
       <Tabs default-value="content" class="w-full">
-        <TabsList class="grid w-full grid-cols-4 border-2">
+        <TabsList class="grid w-full grid-cols-5 border-2">
           <TabsTrigger value="content">Content</TabsTrigger>
           <TabsTrigger value="attendance">Attendance</TabsTrigger>
-          <TabsTrigger value="messages">Messages</TabsTrigger>
           <TabsTrigger value="students">Students</TabsTrigger>
+          <TabsTrigger value="class-record" @click="router.visit(route('instructor.class-record.index', classlist.id))">
+            <Calculator class="w-4 h-4 mr-1" />
+            Class Record
+          </TabsTrigger>
+          <TabsTrigger value="messages">Messages</TabsTrigger>
         </TabsList>
 
         <!-- Content Tab -->

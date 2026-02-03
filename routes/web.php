@@ -52,7 +52,7 @@ Route::middleware([InstructorMiddleware::class])->prefix('instructor')->name('in
     Route::get('/classlist/{classlist}/students', [ClasslistController::class, 'students'])->name('classlist.students');
     Route::post('/classlist/{classlist}/students/invite', [ClasslistController::class, 'inviteStudent'])->name('classlist.students.invite');
     Route::delete('/classlist/{classlist}/students/{student}', [ClasslistController::class, 'removeStudent'])->name('classlist.students.remove');
-    
+
     // Archived Classes
     Route::get('/archived-classes', [\App\Http\Controllers\Instructor\ArchivedClassesController::class, 'index'])->name('archived-classes.index');
     Route::post('/archived-classes/{classlist}/restore', [\App\Http\Controllers\Instructor\ArchivedClassesController::class, 'restore'])->name('archived-classes.restore');
@@ -85,7 +85,7 @@ Route::middleware([InstructorMiddleware::class])->prefix('instructor')->name('in
     Route::get('/classlist/{classlist}/assignments/{assignment}', [AssignmentController::class, 'show'])->name('assignments.show');
     Route::put('/classlist/{classlist}/assignments/{assignment}', [AssignmentController::class, 'update'])->name('assignments.update');
     Route::delete('/classlist/{classlist}/assignments/{assignment}', [AssignmentController::class, 'destroy'])->name('assignments.destroy');
-    
+
     // Assignment Grading
     Route::get('/classlist/{classlist}/assignments/{assignment}/grading', [\App\Http\Controllers\AssignmentGradingController::class, 'index'])->name('assignments.grading');
     Route::post('/classlist/{classlist}/assignments/{assignment}/submissions/{submission}/grade', [\App\Http\Controllers\AssignmentGradingController::class, 'grade'])->name('assignments.submissions.grade');
@@ -112,6 +112,26 @@ Route::middleware([InstructorMiddleware::class])->prefix('instructor')->name('in
     // JSON for Activity Create select
     Route::get('/criteria/options', [CriteriaController::class, 'options'])->name('criteria.options');
 
+
+    // Class Record (Gradebook)
+    Route::get('/classlist/{classlist}/class-record', [\App\Http\Controllers\ClassRecordController::class, 'index'])
+        ->name('class-record.index');
+    Route::post('/classlist/{classlist}/class-record/components', [\App\Http\Controllers\ClassRecordController::class, 'storeComponent'])
+        ->name('class-record.components.store');
+    Route::put('/class-record/components/{component}', [\App\Http\Controllers\ClassRecordController::class, 'updateComponent'])
+        ->name('class-record.components.update');
+    Route::delete('/class-record/components/{component}', [\App\Http\Controllers\ClassRecordController::class, 'destroyComponent'])
+        ->name('class-record.components.destroy');
+    Route::post('/class-record/components/{component}/items', [\App\Http\Controllers\ClassRecordController::class, 'storeItem'])
+        ->name('class-record.items.store');
+    Route::put('/class-record/items/{item}', [\App\Http\Controllers\ClassRecordController::class, 'updateItem'])
+        ->name('class-record.items.update');
+    Route::delete('/class-record/items/{item}', [\App\Http\Controllers\ClassRecordController::class, 'destroyItem'])
+        ->name('class-record.items.destroy');
+    Route::post('/class-record/items/{item}/grades', [\App\Http\Controllers\ClassRecordController::class, 'updateGrades'])
+        ->name('class-record.grades.update');
+    Route::get('/classlist/{classlist}/class-record/export', [\App\Http\Controllers\ClassRecordController::class, 'export'])
+        ->name('class-record.export');
 
     // Analytics
     Route::get('/analytics', [InstructorAnalyticsController::class, 'index'])->name('analytics');
@@ -169,21 +189,21 @@ Route::middleware([InstructorMiddleware::class])->prefix('instructor')->name('in
 Route::middleware([StudentMiddleware::class])->prefix('student')->name('student.')->group(function () {
     // Dashboard
     Route::get('/dashboard', [StudentDashboardController::class, 'index'])->name('dashboard');
-    
+
     // Grades
     Route::get('/grades', [\App\Http\Controllers\StudentGradesController::class, 'index'])->name('grades.index');
 
     // Calendar
     Route::get('/calendar', [\App\Http\Controllers\CalendarController::class, 'indexStudent'])->name('calendar.index');
     Route::get('/calendar/export', [\App\Http\Controllers\CalendarController::class, 'exportIcal'])->name('calendar.export');
-    
+
     Route::get('/classlist', [ClasslistUserController::class, 'index'])->name('classlist');
     Route::post('/class-join', [ClasslistUserController::class, 'join'])->name('class.join');
     Route::get('/class/{id}', [ClasslistUserController::class, 'show'])->name('class.show');
     Route::post('/class-unenroll/{id}', [ClasslistUserController::class, 'unenroll'])->name('class.unenroll');
     Route::post('/class-archive/{id}', [ClasslistUserController::class, 'archive'])->name('class.archive');
     Route::post('/class-restore/{id}', [ClasslistUserController::class, 'restore'])->name('class.restore');
-    
+
     // Archived Classes
     Route::get('/archived-classes', [\App\Http\Controllers\Student\ArchivedClassesController::class, 'index'])->name('archived-classes.index');
     Route::post('/archived-classes/{id}/restore', [\App\Http\Controllers\Student\ArchivedClassesController::class, 'restore'])->name('archived-classes.restore');
@@ -277,7 +297,7 @@ Route::middleware([StudentMiddleware::class])->prefix('student')->name('student.
         Route::put('/folders/{folder}', [\App\Http\Controllers\FileFolderController::class, 'update'])->name('folders.update');
         Route::delete('/folders/{folder}', [\App\Http\Controllers\FileFolderController::class, 'destroy'])->name('folders.destroy');
         Route::post('/folders/move-file', [\App\Http\Controllers\FileFolderController::class, 'moveFile'])->name('folders.move-file');
-        
+
         // Versions
         Route::get('/attachments/{attachment}/versions', [\App\Http\Controllers\FileVersionController::class, 'index'])->name('versions.index');
         Route::post('/attachments/{attachment}/versions', [\App\Http\Controllers\FileVersionController::class, 'store'])->name('versions.store');
