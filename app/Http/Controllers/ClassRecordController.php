@@ -42,15 +42,17 @@ class ClassRecordController extends Controller
 
         // Calculate final grades for each student
         $studentFinalGrades = [];
+        $gradeComponents = $classlist->gradeComponents ?? collect([]);
+        
         foreach ($classlist->students as $student) {
-            $finalGrade = $this->calculateFinalGrade($student->id, $classlist->gradeComponents);
+            $finalGrade = $this->calculateFinalGrade($student->id, $gradeComponents);
             $studentFinalGrades[$student->id] = $finalGrade;
         }
 
         return Inertia::render('Instructor/ClassRecord/Index', [
             'classlist' => $classlist,
-            'students' => $classlist->students,
-            'gradeComponents' => $classlist->gradeComponents,
+            'students' => $classlist->students ?? collect([]),
+            'gradeComponents' => $gradeComponents,
             'grades' => $grades,
             'finalGrades' => $studentFinalGrades,
         ]);
@@ -207,15 +209,25 @@ class ClassRecordController extends Controller
         $totalWeight = 0;
         $componentBreakdown = [];
 
+        // Handle null or empty grade components
+        if (!$gradeComponents || $gradeComponents->isEmpty()) {
+            return [
+                'final_grade' => 0,
+                'total_weighted_score' => 0,
+                'breakdown' => [],
+                'letter_grade' => 'N/A',
+            ];
+        }
+
         foreach ($gradeComponents as $component) {
-            $totalMaxPoints = $component->gradeItems->sum('max_points');
+            $totalMaxPoints = $component->gradeItems ? $component->gradeItems->sum('max_points') : 0;
 
             if ($totalMaxPoints == 0) {
                 $componentBreakdown[] = [
-                    'component' => $component->name,
+                    'component' => $component->name ?? 'Unknown',
                     'percentage' => 0,
                     'weighted_score' => 0,
-                    'weight' => $component->weight,
+                    'weight' => $component->weight ?? 0,
                 ];
                 continue;
             }
@@ -225,24 +237,24 @@ class ClassRecordController extends Controller
                 $query->where('grade_component_id', $component->id);
             })
             ->where('user_id', $userId)
-            ->sum('points');
+            ->sum('points') ?? 0;
 
             // Calculate percentage for this component
             $componentPercentage = ($studentPoints / $totalMaxPoints) * 100;
 
             // Calculate weighted score
-            $weightedScore = ($componentPercentage / 100) * $component->weight;
+            $weightedScore = ($componentPercentage / 100) * ($component->weight ?? 0);
 
             $totalWeightedScore += $weightedScore;
-            $totalWeight += $component->weight;
+            $totalWeight += ($component->weight ?? 0);
 
             $componentBreakdown[] = [
-                'component' => $component->name,
+                'component' => $component->name ?? 'Unknown',
                 'points' => $studentPoints,
                 'max_points' => $totalMaxPoints,
                 'percentage' => round($componentPercentage, 2),
                 'weighted_score' => round($weightedScore, 2),
-                'weight' => $component->weight,
+                'weight' => $component->weight ?? 0,
             ];
         }
 
