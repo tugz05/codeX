@@ -16,6 +16,9 @@ if (php_sapi_name() !== 'cli') {
 
 // Start timing
 $startTime = microtime(true);
+
+// Set timezone to UTC+08:00 (Philippine Time)
+date_default_timezone_set('Asia/Manila');
 $timestamp = date('Y-m-d H:i:s');
 
 // Change to Laravel root directory (where this script is located)
@@ -59,6 +62,13 @@ try {
     $output2 = \Illuminate\Support\Facades\Artisan::output();
     echo $output2;
 
+    // Update assignment statuses (check for missing, late submissions)
+    // Run this every minute to keep statuses up-to-date
+    echo "Updating assignment statuses...\n";
+    $exitCode3 = \Illuminate\Support\Facades\Artisan::call('assignments:update-status');
+    $output3 = \Illuminate\Support\Facades\Artisan::output();
+    echo $output3;
+
     // Calculate execution time
     $endTime = microtime(true);
     $executionTime = round(($endTime - $startTime) * 1000, 2);
@@ -68,6 +78,7 @@ try {
     $logEntry = "[{$timestamp}] Queue processed\n";
     $logEntry .= "  Notifications queue: exit code {$exitCode1}\n";
     $logEntry .= "  Default queue: exit code {$exitCode2}\n";
+    $logEntry .= "  Assignment status update: exit code {$exitCode3}\n";
     $logEntry .= "  Execution time: {$executionTime}ms\n\n";
 
     @file_put_contents($logFile, $logEntry, FILE_APPEND);
