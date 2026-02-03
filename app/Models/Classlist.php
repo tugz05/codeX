@@ -79,4 +79,9 @@ class Classlist extends Model
     {
         return $this->hasMany(ClassMessage::class, 'classlist_id', 'id');
     }
+
+    public function gradeComponents()
+    {
+        return $this->hasMany(GradeComponent::class, 'classlist_id', 'id');
+    }
 }
