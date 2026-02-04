@@ -14,7 +14,7 @@ class TestMailCommand extends Command
     public function handle()
     {
         $email = $this->argument('email');
-        
+
         $this->info('Testing mail configuration...');
         $this->info('Sending to: ' . $email);
         $this->newLine();
@@ -32,7 +32,7 @@ class TestMailCommand extends Command
 
             // Test 2: Send email directly (NOT queued)
             $this->info('Sending test email (direct, not queued)...');
-            
+
             Mail::send('emails.notification', [
                 'appName' => config('app.name', 'CodeX'),
                 'title' => 'Test Email - Direct Send',
@@ -51,9 +51,9 @@ class TestMailCommand extends Command
 
             // Test 3: Send via notification system (queued)
             $this->info('Now testing queued notification...');
-            
+
             $user = \App\Models\User::where('email', $email)->first();
-            
+
             if (!$user) {
                 $this->error('User not found with email: ' . $email);
                 return Command::FAILURE;
@@ -64,10 +64,10 @@ class TestMailCommand extends Command
                 'This is a test assignment notification sent via the queue system.',
                 url('/')
             );
-            
+
             $notification->onConnection('database')->onQueue('notifications');
             $user->notify($notification);
-            
+
             $this->info('✓ Notification queued successfully!');
             $this->line('Run: php artisan queue:work database --once --queue=notifications');
             $this->line('Then check inbox again.');

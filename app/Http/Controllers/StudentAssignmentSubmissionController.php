@@ -46,7 +46,8 @@ class StudentAssignmentSubmissionController extends Controller
             'submission_type' => $data['submission_type'],
             'link_url' => $data['link_url'] ?? null,
             'video_url' => $data['video_url'] ?? null,
-            'status' => 'submitted',
+            // Mark as turned in by default; late/missing/graded are handled by status updater
+            'status' => AssignmentSubmission::STATUS_TURNED_IN,
             'submitted_at' => now(),
         ]);
 
@@ -99,7 +100,8 @@ class StudentAssignmentSubmissionController extends Controller
             'submission_type' => $data['submission_type'],
             'link_url' => $data['link_url'] ?? null,
             'video_url' => $data['video_url'] ?? null,
-            'status' => 'submitted',
+            // Keep as turned in when student updates; grading command/logic can adjust to late/graded
+            'status' => AssignmentSubmission::STATUS_TURNED_IN,
             'submitted_at' => now(),
         ]);
 
@@ -108,7 +110,7 @@ class StudentAssignmentSubmissionController extends Controller
             $attachmentsToRemove = AssignmentSubmissionAttachment::whereIn('id', $data['attachments_remove'])
                 ->where('assignment_submission_id', $submission->id)
                 ->get();
-            
+
             foreach ($attachmentsToRemove as $att) {
                 if (Storage::disk('public')->exists(str_replace('/storage/', '', $att->url))) {
                     Storage::disk('public')->delete(str_replace('/storage/', '', $att->url));
@@ -123,14 +125,14 @@ class StudentAssignmentSubmissionController extends Controller
             $remainingAttachments = $submission->attachments()
                 ->whereNotIn('id', $data['attachments_remove'] ?? [])
                 ->count();
-            
+
             // If no existing attachments remain and no new files uploaded, require files
             if ($remainingAttachments === 0 && !$request->hasFile('attachments')) {
                 return redirect()->back()
                     ->withErrors(['attachments' => 'Please upload at least one file for file submission.'])
                     ->withInput();
             }
-            
+
             if ($request->hasFile('attachments')) {
                 foreach ($request->file('attachments') as $file) {
                     $path = $file->store('assignment-submissions', 'public');

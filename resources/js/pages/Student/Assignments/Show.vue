@@ -51,7 +51,8 @@ const props = defineProps<{
     submission_type: 'file' | 'link' | 'video_link'
     link_url: string | null
     video_url: string | null
-    status: 'draft' | 'submitted' | 'graded'
+    // Updated to match new backend status values
+    status: 'assigned' | 'turned_in' | 'missing' | 'late' | 'graded'
     score: number | null
     feedback: string | null
     submitted_at: string | null
@@ -332,7 +333,7 @@ function submit() {
                     <!-- File Upload -->
                     <div v-if="showFileUpload" class="space-y-4">
                       <Label class="text-sm font-medium">Upload Files</Label>
-                      
+
                       <!-- File Folder Manager -->
                       <div v-if="props.submission && props.folders && showFileUpload" class="mb-4 p-4 border rounded-lg bg-muted/30">
                         <FileFolderManager

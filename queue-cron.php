@@ -1,13 +1,6 @@
 <?php
 
-/**
- * Queue Worker Cron Script
- *
- * This script processes queued jobs (email notifications, etc.)
- * Designed to be run via cron job on shared hosting
- *
- * Usage: php /path/to/queue-cron.php
- */
+
 
 // Ensure we're running from CLI
 if (php_sapi_name() !== 'cli') {
